@@ -1,0 +1,127 @@
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 1rem 2rem 4rem;
+  position: relative;
+  overflow: hidden;
+  background: radial-gradient(circle at center top, #1a0b2e 0%, #000000 100%);
+}
+
+.hero-title {
+  font-size: 154px;
+  line-height: 0.8;
+  font-weight: 700;
+  margin-bottom: 2rem;
+  letter-spacing: -3.4px;
+  color: white;
+  position: relative;
+  z-index: 1;
+  font-family: 'Switzer', sans-serif;
+}
+
+.hero-subtitle {
+  font-size: 22px;
+  max-width: 1060px;
+  margin: 0 auto 3rem;
+  color: #ccc;
+  line-height: 1.5;
+  position: relative;
+}
+
+.hero-button {
+  background-color: white;
+  color: black;
+  padding: 1rem 2.5rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 1.1rem;
+  display: inline-block;
+  transition: transform 0.2s, box-shadow 0.2s;
+  position: relative;
+  z-index: 10;
+}
+
+.hero-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+}
+
+.hero-visuals {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.hero-screenshot {
+  display: none; /* Hiding screenshot as per reference image focus on text/icons */
+}
+
+.hero-shape {
+  position: absolute;
+  z-index: 999999;
+  filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5));
+}
+
+.shape-1 {
+  width: 180px;
+  top: 22%;
+  right: 20%;
+  transform: rotate(15deg);
+  animation: float 6s ease-in-out infinite;
+  z-index: 10000;
+}
+
+.shape-2 {
+  width: 220px;
+  bottom: 14%;
+  left: 21%;
+  transform: rotate(-15deg);
+  animation: float 8s ease-in-out infinite reverse;
+  z-index: 10000;
+}
+
+.hero-glow {
+  position: absolute;
+  bottom: -20%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 150%;
+  height: 500px;
+  background: radial-gradient(ellipse at center, #7000ff 0%, #4c00b0 30%, transparent 70%);
+  filter: blur(80px);
+  z-index: 1;
+  opacity: 0.8;
+  border-radius: 50% 50% 0 0;
+}
+
+@keyframes float {
+  0% { transform: translateY(0px) rotate(15deg); }
+  50% { transform: translateY(-20px) rotate(20deg); }
+  100% { transform: translateY(0px) rotate(15deg); }
+}
+
+@media (max-width: 768px) {
+  .hero-title {
+    font-size: 3.5rem;
+  }
+  
+  .shape-1 {
+    width: 100px;
+    top: 10%;
+    right: 5%;
+  }
+  
+  .shape-2 {
+    width: 120px;
+    bottom: 15%;
+    left: 5%;
+  }
+}
