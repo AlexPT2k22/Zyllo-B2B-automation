@@ -1,16 +1,20 @@
 import React from 'react';
+import { MessageCircle, Zap, ShoppingCart } from 'lucide-react';
 import './Features.css';
 
 const features = [
   {
+    icon: <MessageCircle size={24} />,
     title: '24/7 Instant Responses',
     description: "Don't keep your customers waiting. Our rules engine responds to questions about prices, stock, and schedules in seconds.",
   },
   {
+    icon: <Zap size={24} />,
     title: 'Qualify Leads',
     description: "Automatically identify high-intent buyers and route them to your sales team or checkout page.",
   },
   {
+    icon: <ShoppingCart size={24} />,
     title: 'Recover Carts',
     description: "Send automated follow-ups to customers who abandoned their shopping carts on Instagram and TikTok.",
   },
@@ -28,7 +32,7 @@ const Features = () => {
         <div className="features-grid">
           {features.map((feature, index) => (
             <div key={index} className="feature-card">
-              <div className="feature-icon"></div>
+              <div className="feature-icon">{feature.icon}</div>
               <h3 className="feature-card-title">{feature.title}</h3>
               <p className="feature-card-desc">{feature.description}</p>
             </div>

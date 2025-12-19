@@ -1,9 +1,13 @@
 import React from 'react';
 import './Hero.css';
+import DarkVeil from './DarkVeil';
 
 const Hero = () => {
   return (
     <section className="hero">
+      <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: -1 }}>
+        <DarkVeil />
+      </div>
       <div className="hero-content">
         <h1 className="hero-title">Never lose<br />a lead anymore</h1>
         <p className="hero-subtitle">
