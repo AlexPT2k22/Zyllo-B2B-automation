@@ -42,6 +42,24 @@
 }
 
 /* ============================================
+   Hero Gradient Background
+   ============================================ */
+.bg-hero-gradient {
+  background: linear-gradient(180deg, #000000 0%, #5926B6 60%, #E6A9FD 100%);
+  position: relative;
+}
+
+.bg-hero-gradient::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 150px;
+  background: radial-gradient(ellipse 100% 100% at 50% 100%, #000000 0%, transparent 70%);
+}
+
+/* ============================================
    Tech Grid Background
    ============================================ */
 .bg-tech-grid {

@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react'
+import { motion, useInView, AnimatePresence } from 'framer-motion'
+import { useRef } from 'react'
 import { 
   MessageSquare, 
   Clock, 
@@ -25,8 +27,69 @@ import {
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
-import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
+
+/**
+ * Animation Variants
+ */
+const fadeInUp = {
+  hidden: { opacity: 0, y: 30 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }
+}
+
+const fadeIn = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { duration: 0.5 } }
+}
+
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1, delayChildren: 0.1 }
+  }
+}
+
+const staggerItem = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
+}
+
+const scaleIn = {
+  hidden: { opacity: 0, scale: 0.95 },
+  visible: { opacity: 1, scale: 1, transition: { duration: 0.5 } }
+}
+
+const slideInLeft = {
+  hidden: { opacity: 0, x: -50 },
+  visible: { opacity: 1, x: 0, transition: { duration: 0.6 } }
+}
+
+const slideInRight = {
+  hidden: { opacity: 0, x: 50 },
+  visible: { opacity: 1, x: 0, transition: { duration: 0.6 } }
+}
+
+/**
+ * Animated Section wrapper
+ */
+function AnimatedSection({ children, className, delay = 0 }) {
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true, margin: "-100px" })
+  
+  return (
+    <motion.div
+      ref={ref}
+      initial="hidden"
+      animate={isInView ? "visible" : "hidden"}
+      variants={fadeInUp}
+      transition={{ delay }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  )
+}
 
 /**
  * Translations
@@ -209,9 +272,17 @@ const InstagramIcon = ({ className }) => (
   </svg>
 )
 
-/* Header */
+/* Header - Figma Design */
 function Header({ lang, setLang, t }) {
   const [scrolled, setScrolled] = useState(false)
+  
+  const navLinks = [
+    { label: 'About', href: '#about' },
+    { label: 'Features', href: '#features' },
+    { label: 'Customers', href: '#customers' },
+    { label: 'Updates', href: '#updates' },
+    { label: 'Help', href: '#contact' }
+  ]
   
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20)
@@ -220,183 +291,247 @@ function Header({ lang, setLang, t }) {
   }, [])
   
   return (
-    <header className={cn(
-      "fixed top-0 left-0 right-0 z-50 transition-all duration-500",
-      scrolled 
-        ? "bg-slate-950/90 backdrop-blur-xl border-b border-white/5 py-4" 
-        : "bg-transparent py-6"
-    )}>
-      <div className="container mx-auto px-6 flex justify-between items-center">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-violet-500/30">
-            <Zap className="w-5 h-5 text-white" />
-          </div>
-          <span className="text-xl font-bold tracking-tight text-white">Zyllo</span>
-        </div>
+    <motion.header 
+      initial={{ y: -100, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.6, ease: "easeOut" }}
+      className="fixed top-0 left-0 right-0 z-50"
+      style={{
+        backdropFilter: 'blur(7px)',
+        WebkitBackdropFilter: 'blur(7px)',
+        backgroundColor: scrolled ? 'rgba(0,0,0,0.8)' : 'rgba(255,255,255,0.01)'
+      }}
+    >
+      <div className="container mx-auto px-5 py-5 flex justify-between items-center">
+        {/* Logo */}
+        <motion.a 
+          href="#"
+          className="text-white text-sm font-normal"
+          style={{ fontFamily: "'Inter', sans-serif" }}
+          whileHover={{ opacity: 0.8 }}
+        >
+          Zyllo
+        </motion.a>
         
-        <nav className="hidden md:flex items-center gap-8">
-          {['features', 'pricing'].map((item) => (
-            <a 
-              key={item}
-              href={`#${item}`} 
-              className="text-sm font-medium text-white/60 hover:text-white transition-colors"
+        {/* Nav Links */}
+        <nav className="hidden md:flex items-center gap-6">
+          {navLinks.map((link) => (
+            <motion.a 
+              key={link.label}
+              href={link.href}
+              className="text-white/70 text-base font-normal hover:text-white transition-colors"
+              style={{ 
+                fontFamily: "'Inter', sans-serif",
+                letterSpacing: '-0.16px',
+                lineHeight: '23px'
+              }}
+              whileHover={{ y: -1 }}
             >
-              {t.nav[item] || item}
-            </a>
+              {link.label}
+            </motion.a>
           ))}
         </nav>
-        
-        <div className="flex items-center gap-4">
-          <div className="flex bg-white/10 rounded-lg p-0.5">
-            <button onClick={() => setLang('en')} className={cn(
-              "px-2.5 py-1 text-xs font-bold rounded-md transition-all",
-              lang === 'en' ? "bg-white/20 text-white" : "text-white/50"
-            )}>EN</button>
-            <button onClick={() => setLang('pt')} className={cn(
-              "px-2.5 py-1 text-xs font-bold rounded-md transition-all",
-              lang === 'pt' ? "bg-white/20 text-white" : "text-white/50"
-            )}>PT</button>
-          </div>
-          <a href="#pricing" className="btn-glossy h-10 px-6 text-sm text-white flex items-center gap-2">
-            {t.nav.signIn}
-            <ArrowRight className="w-4 h-4" />
-          </a>
-        </div>
+
+        {/* CTA Button */}
+        <motion.a 
+          href="#pricing" 
+          className="bg-white text-black px-5 py-2 rounded-lg text-sm font-medium hover:bg-white/90 transition-colors"
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          Get for free
+        </motion.a>
       </div>
-    </header>
+    </motion.header>
   )
 }
 
-/* Hero */
+/* Hero - Figma Design */
 function Hero({ t }) {
   return (
-    <section className="bg-tech-grid min-h-screen flex items-center relative overflow-hidden">
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-violet-500/20 rounded-full blur-3xl animate-float" />
-      <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-purple-500/20 rounded-full blur-3xl animate-float-delayed" />
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-slate-950 pointer-events-none" />
+    <section 
+      className="min-h-screen flex items-center relative overflow-hidden"
+      style={{
+        background: 'linear-gradient(180deg, #000000 0%, #200D42 36%, #4F21A1 69%, #A46EDB 87%)'
+      }}
+    >
+      {/* Ellipse overlay at bottom */}
+      <div 
+        className="absolute left-1/2 -translate-x-1/2 w-[2344px] h-[1014px] pointer-events-none"
+        style={{ top: '556px' }}
+      >
+        <div className="w-full h-full rounded-full bg-black/50 blur-3xl" />
+      </div>
+      <motion.img 
+        src="/Shape Icon.png"
+        alt=""
+        className="absolute w-20 md:w-24 lg:w-28 pointer-events-none z-20 opacity-60"
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 0.6, y: 0 }}
+        transition={{ duration: 1, delay: 0.9 }}
+        style={{ 
+          bottom: '25%',
+          right: '12%',
+          filter: 'drop-shadow(0 15px 30px rgba(0,0,0,0.3))' 
+        }}
+      />
       
-      <div className="container mx-auto px-6 relative z-10 pt-32">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/10 rounded-full px-4 py-2 mb-8 animate-slide-up">
-              <span className="text-sm font-medium text-white/90">{t.hero.badge}</span>
-            </div>
-            
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.1] mb-8 animate-slide-up" style={{ animationDelay: '0.1s' }}>
-              <span className="text-gradient-white">{t.hero.headline1}</span><br />
-              <span className="text-white/60">{t.hero.headline2} </span>
-              <span className="text-gradient glow-text">{t.hero.highlight}</span>
-            </h1>
-            
-            <p className="text-lg md:text-xl text-white/60 max-w-2xl mx-auto mb-12 leading-relaxed animate-slide-up" style={{ animationDelay: '0.2s' }}>
-              {t.hero.subtitle}
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16 animate-slide-up" style={{ animationDelay: '0.3s' }}>
-              <button className="btn-glossy h-14 px-8 text-white text-lg flex items-center justify-center gap-3">
-                <Sparkles className="w-5 h-5" />
-                {t.hero.cta1}
-              </button>
-              <button className="btn-glossy-secondary h-14 px-8 text-white text-lg flex items-center justify-center gap-3">
-                <Play className="w-5 h-5" />
-                {t.hero.cta2}
-              </button>
-            </div>
-            
-            <div className="flex justify-center gap-12 md:gap-20 animate-slide-up" style={{ animationDelay: '0.4s' }}>
-              {[
-                { value: t.stats.stat1, label: t.stats.stat1Label },
-                { value: t.stats.stat2, label: t.stats.stat2Label },
-                { value: t.stats.stat3, label: t.stats.stat3Label }
-              ].map((stat, i) => (
-                <div key={i} className="text-center">
-                  <div className="text-3xl md:text-4xl font-bold text-gradient mb-1">{stat.value}</div>
-                  <div className="text-sm text-white/40">{stat.label}</div>
-                </div>
-              ))}
-            </div>
-          </div>
+      {/* Hero Content */}
+      <div className="container mx-auto px-6 relative z-10 pt-20">
+        <motion.div 
+          className="flex flex-col items-center gap-8"
+          initial="hidden"
+          animate="visible"
+          variants={staggerContainer}
+        >
+          {/* Headline */}
+          <motion.h1 
+            variants={staggerItem}
+            className="text-white text-center w-full"
+            style={{
+              fontFamily: "'DM Sans', sans-serif",
+              fontWeight: 600,
+              fontSize: 'clamp(60px, 10vw, 154px)',
+              lineHeight: '7.8125rem',
+              letterSpacing: '-0.77344rem',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            Never lose<br />
+            a lead anymore
+          </motion.h1>
           
-          {/* Chat Mockup */}
-          <div className="relative max-w-3xl mx-auto animate-slide-up" style={{ animationDelay: '0.5s' }}>
-            <div className="hero-mockup backdrop-blur-xl">
-              <div className="bg-gradient-to-r from-violet-600/80 to-purple-600/80 backdrop-blur-sm p-4 flex items-center gap-3 border-b border-white/10">
-                <div className="flex gap-1.5">
-                  <div className="w-3 h-3 rounded-full bg-white/20" />
-                  <div className="w-3 h-3 rounded-full bg-white/20" />
-                  <div className="w-3 h-3 rounded-full bg-white/20" />
-                </div>
-                <span className="text-white/60 text-sm font-medium ml-4">Zyllo Inbox</span>
-                <div className="ml-auto flex items-center gap-2 text-white/60 text-xs">
-                  <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                  Online
-                </div>
-              </div>
-              
-              <div className="p-6 space-y-4 bg-slate-950/50">
-                <div className="flex gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-rose-500 rounded-full flex-shrink-0 shadow-lg shadow-pink-500/20" />
-                  <div className="card-glass p-4 max-w-xs">
-                    <p className="text-white/90 text-sm">Olá! Quanto custa o serviço de limpeza facial? 💆‍♀️</p>
-                    <p className="text-white/40 text-xs mt-2">14:32</p>
-                  </div>
-                </div>
-                
-                <div className="flex gap-3 justify-end">
-                  <div className="bg-gradient-to-r from-violet-600 to-purple-600 rounded-2xl rounded-tr-sm p-4 max-w-sm shadow-lg shadow-violet-500/20">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Zap className="w-3 h-3 text-white/70" />
-                      <span className="text-xs text-white/60">Auto-reply</span>
-                    </div>
-                    <p className="text-white text-sm">Olá! 😊 O nosso tratamento custa 45€. Quer agendar? Temos horários esta semana!</p>
-                    <p className="text-white/50 text-xs mt-2">14:32 • Enviado automaticamente</p>
-                  </div>
-                </div>
-                
-                <div className="flex justify-center">
-                  <div className="bg-amber-500/20 border border-amber-500/30 rounded-full px-4 py-2 flex items-center gap-2 text-sm backdrop-blur-sm">
-                    <CalendarClock className="w-4 h-4 text-amber-400" />
-                    <span className="text-amber-300">Follow-up agendado para amanhã</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 w-3/4 h-20 bg-violet-500/30 blur-3xl rounded-full" />
-          </div>
+          {/* Subtitle */}
+          <motion.p 
+            variants={staggerItem}
+            className="text-center max-w-2xl"
+            style={{
+              fontFamily: "'Inter', sans-serif",
+              fontWeight: 400,
+              fontSize: '1.375rem',
+              color: 'rgba(255,255,255,0.7)',
+              lineHeight: '1.9375rem',
+              letterSpacing: '-0.0495rem',
+              width: '457px'
+            }}
+          >
+            Automate responses, qualify leads, and recover shopping carts on Instagram and TikTok. The tool that works 24/7 for your clothing, nail, resale store and more.
+          </motion.p>
+          
+          {/* Buttons */}
+          <motion.div 
+            variants={staggerItem}
+            className="flex items-center gap-4"
+          >
+            <motion.a 
+              href="#pricing"
+              className="bg-white text-black px-8 py-4 rounded-xl text-base font-medium"
+              style={{ fontFamily: "'Inter', sans-serif",
+                display: 'flex',
+                padding: '15px 20px',
+                justifyContent: 'center',
+                alignItems: 'center',
+                gap: '4px',
+               }}
+              whileHover={{ scale: 1.03, y: -2 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              Try now
+            </motion.a>
+          </motion.div>
+        </motion.div>
+      </div>
+    </section>
+  )
+}
+
+/* Logo Ticker - Figma Design */
+const logos = [
+  { name: 'acme', src: 'http://localhost:3845/assets/68390137fa798a89850dfbc5b024cd65dd796bd0.png' },
+  { name: 'quantum', src: 'http://localhost:3845/assets/824f01bd4dbadbf345d6eb1f0394eec73c693cce.png' },
+  { name: 'echo', src: 'http://localhost:3845/assets/6c1dfc5e3fea0c75f87b551289232f0bc6d1d3d7.png' },
+  { name: 'celestia', src: 'http://localhost:3845/assets/54600a66c618f1e2437090a8d332ed71a06f2a87.png' },
+  { name: 'pulse', src: 'http://localhost:3845/assets/e1a4ee212f2b67c07b715b99d9ddd1cef0e86384.png' },
+  { name: 'apex', src: 'http://localhost:3845/assets/e5aa385c4859d9b44dfca95331e63ccc6ccd44b6.png' },
+]
+
+function LogoTicker() {
+  return (
+    <section className="py-20 md:py-24 bg-black text-white overflow-hidden">
+      <div className="container mx-auto px-6">
+        <div className="flex items-center gap-4 mb-8 justify-center">
+          <span className="text-white/50 text-sm">Trusted by the world's most innovative teams</span>
+        </div>
+        <div className="flex overflow-hidden [mask-image:linear-gradient(to_right,transparent,black,transparent)]">
+          <motion.div 
+            className="flex gap-14 flex-none pr-14"
+            animate={{
+              translateX: "-50%",
+            }}
+            transition={{
+              duration: 20,
+              repeat: Infinity,
+              ease: "linear",
+              repeatType: "loop",
+            }}
+          >
+            {[...logos, ...logos].map((logo, index) => (
+              <img 
+                key={index} 
+                src={logo.src} 
+                alt={logo.name} 
+                className="h-8 w-auto object-contain flex-none opacity-80 grayscale hover:grayscale-0 transition-all duration-300"
+              />
+            ))}
+          </motion.div>
         </div>
       </div>
     </section>
   )
 }
 
-/* Features - Dark Tech Style */
+/* Features with motion */
 function Features({ t }) {
   const [activeTab, setActiveTab] = useState(0)
   const tabIcons = [Send, RefreshCw, Target, Bell]
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true, margin: "-100px" })
   
   return (
-    <section id="features" className="py-28 bg-slate-950 relative overflow-hidden">
-      {/* Decorative elements */}
+    <section id="features" ref={ref} className="py-28 bg-slate-950 relative overflow-hidden">
       <div className="absolute top-0 left-1/4 w-72 h-72 bg-violet-500/10 rounded-full blur-3xl" />
       <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl" />
       
       <div className="container mx-auto px-6 relative z-10">
-        <div className="text-center mb-20">
-          <div className="inline-flex items-center gap-2 bg-violet-500/20 border border-violet-500/30 rounded-full px-4 py-2 mb-6">
+        <motion.div 
+          className="text-center mb-20"
+          initial="hidden"
+          animate={isInView ? "visible" : "hidden"}
+          variants={staggerContainer}
+        >
+          <motion.div 
+            variants={staggerItem}
+            className="inline-flex items-center gap-2 bg-violet-500/20 border border-violet-500/30 rounded-full px-4 py-2 mb-6"
+          >
             <Sparkles className="w-4 h-4 text-violet-400" />
             <span className="text-sm font-medium text-violet-300">{t.features.tag}</span>
-          </div>
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">{t.features.title}</h2>
-          <p className="text-xl text-white/50 max-w-2xl mx-auto">{t.features.subtitle}</p>
-        </div>
+          </motion.div>
+          <motion.h2 variants={staggerItem} className="text-4xl md:text-5xl font-bold text-white mb-6">{t.features.title}</motion.h2>
+          <motion.p variants={staggerItem} className="text-xl text-white/50 max-w-2xl mx-auto">{t.features.subtitle}</motion.p>
+        </motion.div>
         
-        <div className="grid md:grid-cols-12 gap-10 max-w-6xl mx-auto">
+        <motion.div 
+          className="grid md:grid-cols-12 gap-10 max-w-6xl mx-auto"
+          initial="hidden"
+          animate={isInView ? "visible" : "hidden"}
+          variants={staggerContainer}
+        >
           {/* Tabs */}
-          <div className="md:col-span-4 space-y-2">
+          <motion.div variants={slideInLeft} className="md:col-span-4 space-y-2">
             {t.features.tabs.map((tab, i) => {
               const Icon = tabIcons[i]
               return (
-                <button
+                <motion.button
                   key={i}
                   onClick={() => setActiveTab(i)}
                   className={cn(
@@ -405,6 +540,8 @@ function Features({ t }) {
                       ? "bg-white/10 border border-white/10 text-white" 
                       : "text-white/40 hover:text-white/60 hover:bg-white/5"
                   )}
+                  whileHover={{ x: 5 }}
+                  whileTap={{ scale: 0.98 }}
                 >
                   <div className={cn(
                     "w-10 h-10 rounded-xl flex items-center justify-center transition-all",
@@ -415,62 +552,79 @@ function Features({ t }) {
                     <Icon className={cn("w-5 h-5", activeTab === i ? "text-white" : "text-white/40")} />
                   </div>
                   {tab}
-                </button>
+                </motion.button>
               )
             })}
-          </div>
+          </motion.div>
           
           {/* Content */}
-          <div className="md:col-span-8">
-            <div className="card-glass p-8">
-              <div className="flex items-center gap-4 mb-8">
-                <div className="w-14 h-14 bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-violet-500/30">
-                  <Send className="w-7 h-7 text-white" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-white">{t.features.tabContent.title}</h3>
-                  <p className="text-sm text-white/40">24/7 intelligent responses</p>
-                </div>
-              </div>
-              
-              <div className="bg-white/5 border border-white/10 rounded-xl p-6 mb-6">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="flex items-center gap-2 bg-green-500/20 text-green-400 px-3 py-1.5 rounded-full text-xs font-semibold border border-green-500/30">
-                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                    Active
+          <motion.div variants={slideInRight} className="md:col-span-8">
+            <AnimatePresence mode="wait">
+              <motion.div 
+                key={activeTab}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
+                className="card-glass p-8"
+              >
+                <div className="flex items-center gap-4 mb-8">
+                  <div className="w-14 h-14 bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-violet-500/30">
+                    <Send className="w-7 h-7 text-white" />
                   </div>
-                  <span className="text-sm text-white/40">127 messages today</span>
+                  <div>
+                    <h3 className="text-xl font-bold text-white">{t.features.tabContent.title}</h3>
+                    <p className="text-sm text-white/40">24/7 intelligent responses</p>
+                  </div>
                 </div>
                 
-                <div className="grid grid-cols-3 gap-4">
-                  {[
-                    { value: "2.3s", label: "Avg. response", color: "violet" },
-                    { value: "98%", label: "Reply rate", color: "green" },
-                    { value: "42", label: "Leads today", color: "amber" }
-                  ].map((stat, i) => (
-                    <div key={i} className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
-                      <div className={cn(
-                        "text-2xl font-bold",
-                        stat.color === 'violet' && "text-violet-400",
-                        stat.color === 'green' && "text-green-400",
-                        stat.color === 'amber' && "text-amber-400"
-                      )}>{stat.value}</div>
-                      <div className="text-xs text-white/40">{stat.label}</div>
+                <div className="bg-white/5 border border-white/10 rounded-xl p-6 mb-6">
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="flex items-center gap-2 bg-green-500/20 text-green-400 px-3 py-1.5 rounded-full text-xs font-semibold border border-green-500/30">
+                      <motion.div 
+                        className="w-2 h-2 bg-green-400 rounded-full"
+                        animate={{ scale: [1, 1.3, 1] }}
+                        transition={{ duration: 1.5, repeat: Infinity }}
+                      />
+                      Active
                     </div>
-                  ))}
+                    <span className="text-sm text-white/40">127 messages today</span>
+                  </div>
+                  
+                  <div className="grid grid-cols-3 gap-4">
+                    {[
+                      { value: "2.3s", label: "Avg. response", color: "violet" },
+                      { value: "98%", label: "Reply rate", color: "green" },
+                      { value: "42", label: "Leads today", color: "amber" }
+                    ].map((stat, i) => (
+                      <motion.div 
+                        key={i} 
+                        className="bg-white/5 border border-white/10 rounded-xl p-4 text-center"
+                        whileHover={{ scale: 1.05, borderColor: "rgba(139, 92, 246, 0.5)" }}
+                      >
+                        <div className={cn(
+                          "text-2xl font-bold",
+                          stat.color === 'violet' && "text-violet-400",
+                          stat.color === 'green' && "text-green-400",
+                          stat.color === 'amber' && "text-amber-400"
+                        )}>{stat.value}</div>
+                        <div className="text-xs text-white/40">{stat.label}</div>
+                      </motion.div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-              
-              <p className="text-white/60 leading-relaxed">{t.features.tabContent.desc}</p>
-            </div>
-          </div>
-        </div>
+                
+                <p className="text-white/60 leading-relaxed">{t.features.tabContent.desc}</p>
+              </motion.div>
+            </AnimatePresence>
+          </motion.div>
+        </motion.div>
       </div>
     </section>
   )
 }
 
-/* Feature Grid - Dark Tech Style */
+/* Feature Grid with motion */
 function FeatureGrid({ t }) {
   const items = [
     { icon: Inbox, title: t.grid.title1, desc: t.grid.desc1 },
@@ -480,61 +634,99 @@ function FeatureGrid({ t }) {
     { icon: BarChart3, title: t.grid.title5, desc: t.grid.desc5 }
   ]
   
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true, margin: "-100px" })
+  
   return (
-    <section className="py-28 bg-slate-900 relative overflow-hidden">
+    <section ref={ref} className="py-28 bg-slate-900 relative overflow-hidden">
       <div className="absolute inset-0 bg-tech-grid opacity-30" />
       
       <div className="container mx-auto px-6 relative z-10">
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+        <motion.div 
+          className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto"
+          initial="hidden"
+          animate={isInView ? "visible" : "hidden"}
+          variants={staggerContainer}
+        >
           {items.map((item, i) => (
-            <div key={i} className="card-glass p-6 group hover:bg-white/10 transition-all duration-300 hover:-translate-y-1">
-              <div className="w-14 h-14 bg-gradient-to-br from-violet-500/20 to-purple-500/20 border border-violet-500/30 rounded-xl flex items-center justify-center mb-5 group-hover:from-violet-500 group-hover:to-purple-600 group-hover:border-transparent transition-all duration-300 group-hover:shadow-lg group-hover:shadow-violet-500/30">
+            <motion.div 
+              key={i} 
+              variants={staggerItem}
+              className="card-glass p-6 group"
+              whileHover={{ 
+                y: -8, 
+                backgroundColor: "rgba(255,255,255,0.1)",
+                transition: { duration: 0.2 }
+              }}
+            >
+              <motion.div 
+                className="w-14 h-14 bg-gradient-to-br from-violet-500/20 to-purple-500/20 border border-violet-500/30 rounded-xl flex items-center justify-center mb-5 group-hover:from-violet-500 group-hover:to-purple-600 group-hover:border-transparent transition-all duration-300 group-hover:shadow-lg group-hover:shadow-violet-500/30"
+                whileHover={{ rotate: [0, -10, 10, 0] }}
+                transition={{ duration: 0.5 }}
+              >
                 <item.icon className="w-7 h-7 text-violet-400 group-hover:text-white transition-colors" />
-              </div>
+              </motion.div>
               <h3 className="text-lg font-bold text-white mb-2">{item.title}</h3>
               <p className="text-white/50 leading-relaxed">{item.desc}</p>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   )
 }
 
-/* Integrations - Dark Tech Style */
+/* Integrations with motion */
 function Integrations({ t }) {
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true, margin: "-100px" })
+  
   return (
-    <section className="py-28 bg-slate-950 relative overflow-hidden">
+    <section ref={ref} className="py-28 bg-slate-950 relative overflow-hidden">
       <div className="absolute top-1/2 left-0 w-96 h-96 bg-violet-500/10 rounded-full blur-3xl -translate-y-1/2" />
       
       <div className="container mx-auto px-6 relative z-10">
-        <div className="grid md:grid-cols-2 gap-16 items-center max-w-6xl mx-auto">
-          <div>
+        <motion.div 
+          className="grid md:grid-cols-2 gap-16 items-center max-w-6xl mx-auto"
+          initial="hidden"
+          animate={isInView ? "visible" : "hidden"}
+          variants={staggerContainer}
+        >
+          <motion.div variants={slideInLeft}>
             <div className="inline-flex items-center gap-2 bg-violet-500/20 border border-violet-500/30 rounded-full px-4 py-2 mb-6">
               <Sparkles className="w-4 h-4 text-violet-400" />
               <span className="text-sm font-medium text-violet-300">{t.integrations.tag}</span>
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-6 leading-tight">{t.integrations.title}</h2>
             <p className="text-xl text-white/50 mb-10 leading-relaxed">{t.integrations.subtitle}</p>
-            <a href="#" className="inline-flex items-center gap-2 text-violet-400 font-semibold hover:gap-3 transition-all">
+            <motion.a 
+              href="#" 
+              className="inline-flex items-center gap-2 text-violet-400 font-semibold"
+              whileHover={{ x: 5 }}
+            >
               {t.integrations.cta} <ChevronRight className="w-5 h-5" />
-            </a>
-          </div>
+            </motion.a>
+          </motion.div>
           
-          <div className="card-glass p-6">
-            <div className="space-y-3">
+          <motion.div variants={slideInRight} className="card-glass p-6">
+            <motion.div className="space-y-3" variants={staggerContainer}>
               {[
                 { name: "WhatsApp Business", desc: "Direct messaging", icon: <WhatsAppIcon className="w-5 h-5" />, connected: true, color: "bg-green-500" },
                 { name: "Instagram DM", desc: "Social engagement", icon: <InstagramIcon className="w-5 h-5" />, connected: true, color: "bg-gradient-to-br from-purple-500 to-pink-500" },
                 { name: "Facebook Messenger", desc: "Page messages", icon: "💬", connected: false, color: "bg-blue-500" },
                 { name: "Email (SMTP)", desc: "Email integration", icon: <Mail className="w-5 h-5" />, connected: false, color: "bg-slate-500" }
               ].map((tool, i) => (
-                <div key={i} className={cn(
-                  "flex items-center gap-4 p-4 rounded-xl transition-all",
-                  tool.connected 
-                    ? "bg-violet-500/10 border border-violet-500/30" 
-                    : "bg-white/5 border border-white/5 hover:bg-white/10"
-                )}>
+                <motion.div 
+                  key={i} 
+                  variants={staggerItem}
+                  className={cn(
+                    "flex items-center gap-4 p-4 rounded-xl transition-all",
+                    tool.connected 
+                      ? "bg-violet-500/10 border border-violet-500/30" 
+                      : "bg-white/5 border border-white/5"
+                  )}
+                  whileHover={{ scale: 1.02, x: 5 }}
+                >
                   <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-lg", tool.color)}>
                     {typeof tool.icon === 'string' ? tool.icon : tool.icon}
                   </div>
@@ -543,42 +735,70 @@ function Integrations({ t }) {
                     <div className="text-xs text-white/40">{tool.desc}</div>
                   </div>
                   {tool.connected && (
-                    <div className="flex items-center gap-2 text-xs font-bold text-green-400 bg-green-500/20 border border-green-500/30 px-3 py-1.5 rounded-full">
+                    <motion.div 
+                      className="flex items-center gap-2 text-xs font-bold text-green-400 bg-green-500/20 border border-green-500/30 px-3 py-1.5 rounded-full"
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ delay: 0.5 + i * 0.1 }}
+                    >
                       <Check className="w-3 h-3" />
                       Connected
-                    </div>
+                    </motion.div>
                   )}
-                </div>
+                </motion.div>
               ))}
-            </div>
-          </div>
-        </div>
+            </motion.div>
+          </motion.div>
+        </motion.div>
       </div>
     </section>
   )
 }
 
-/* Pricing - Dark Tech Style */
+/* Pricing with motion */
 function Pricing({ t }) {
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true, margin: "-100px" })
+  
   return (
-    <section id="pricing" className="py-28 bg-slate-900 relative overflow-hidden">
+    <section id="pricing" ref={ref} className="py-28 bg-slate-900 relative overflow-hidden">
       <div className="absolute inset-0 bg-tech-grid opacity-20" />
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-violet-500/10 rounded-full blur-3xl" />
       
       <div className="container mx-auto px-6 relative z-10">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">{t.pricing.title}</h2>
-          <p className="text-xl text-white/50">{t.pricing.subtitle}</p>
-        </div>
+        <motion.div 
+          className="text-center mb-16"
+          initial="hidden"
+          animate={isInView ? "visible" : "hidden"}
+          variants={staggerContainer}
+        >
+          <motion.h2 variants={staggerItem} className="text-4xl md:text-5xl font-bold text-white mb-6">{t.pricing.title}</motion.h2>
+          <motion.p variants={staggerItem} className="text-xl text-white/50">{t.pricing.subtitle}</motion.p>
+        </motion.div>
         
-        <div className="max-w-md mx-auto">
-          <div className="relative">
-            {/* Glow effect */}
-            <div className="absolute -inset-1 bg-gradient-to-r from-violet-500 to-purple-500 rounded-3xl blur-lg opacity-50" />
+        <motion.div 
+          className="max-w-md mx-auto"
+          initial={{ opacity: 0, y: 50 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6, delay: 0.2 }}
+        >
+          <motion.div 
+            className="relative"
+            whileHover={{ y: -5 }}
+          >
+            <motion.div 
+              className="absolute -inset-1 bg-gradient-to-r from-violet-500 to-purple-500 rounded-3xl blur-lg opacity-50"
+              animate={{ opacity: [0.3, 0.6, 0.3] }}
+              transition={{ duration: 3, repeat: Infinity }}
+            />
             
             <div className="relative bg-slate-900 rounded-3xl overflow-hidden border border-violet-500/50">
               <div className="bg-gradient-to-r from-violet-600 via-purple-600 to-violet-600 text-white p-8 text-center relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-pulse" />
+                <motion.div 
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"
+                  animate={{ x: ['-100%', '100%'] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                />
                 <div className="relative">
                   <div className="inline-block bg-white/20 backdrop-blur-sm text-white text-xs font-bold px-4 py-1.5 rounded-full mb-4">{t.pricing.badge}</div>
                   <h3 className="text-2xl font-bold mb-2">{t.pricing.planTitle}</h3>
@@ -587,10 +807,15 @@ function Pricing({ t }) {
               </div>
               
               <div className="p-8">
-                <div className="text-center mb-10">
+                <motion.div 
+                  className="text-center mb-10"
+                  initial={{ scale: 0.9 }}
+                  animate={isInView ? { scale: 1 } : {}}
+                  transition={{ type: "spring", delay: 0.5 }}
+                >
                   <span className="text-6xl font-bold text-white">{t.pricing.monthly}</span>
                   <span className="text-white/50 text-lg">/mo</span>
-                </div>
+                </motion.div>
                 
                 <div className="bg-violet-500/10 border border-violet-500/30 rounded-xl p-5 mb-8 text-center">
                   <span className="text-sm text-white/50">{t.pricing.setup}: </span>
@@ -598,35 +823,45 @@ function Pricing({ t }) {
                   <span className="text-xs text-white/40 block mt-1">One-time</span>
                 </div>
                 
-                <ul className="space-y-4 mb-10">
+                <motion.ul className="space-y-4 mb-10" variants={staggerContainer} initial="hidden" animate={isInView ? "visible" : "hidden"}>
                   {t.pricing.features.map((f, i) => (
-                    <li key={i} className="flex items-center gap-4 text-white/80">
+                    <motion.li 
+                      key={i} 
+                      variants={staggerItem}
+                      className="flex items-center gap-4 text-white/80"
+                    >
                       <div className="w-6 h-6 bg-gradient-to-br from-violet-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0 shadow-md shadow-violet-500/30">
                         <Check className="w-3.5 h-3.5 text-white" />
                       </div>
                       <span className="font-medium">{f}</span>
-                    </li>
+                    </motion.li>
                   ))}
-                </ul>
+                </motion.ul>
                 
-                <button className="btn-glossy w-full h-14 text-white text-lg font-semibold flex items-center justify-center gap-2">
+                <motion.button 
+                  className="btn-glossy w-full h-14 text-white text-lg font-semibold flex items-center justify-center gap-2"
+                  whileHover={{ scale: 1.02, boxShadow: "0 0 40px rgba(139, 92, 246, 0.5)" }}
+                  whileTap={{ scale: 0.98 }}
+                >
                   <Sparkles className="w-5 h-5" />
                   {t.pricing.cta}
-                </button>
+                </motion.button>
               </div>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </div>
     </section>
   )
 }
 
-/* Contact - Dark Tech Style */
+/* Contact with motion */
 function Contact({ t }) {
   const [email, setEmail] = useState('')
   const [message, setMessage] = useState('')
   const [status, setStatus] = useState(null)
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true, margin: "-100px" })
   
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -638,31 +873,43 @@ function Contact({ t }) {
   }
   
   return (
-    <section id="contact" className="py-28 bg-slate-950 relative overflow-hidden">
+    <section id="contact" ref={ref} className="py-28 bg-slate-950 relative overflow-hidden">
       <div className="absolute bottom-0 right-0 w-96 h-96 bg-violet-500/10 rounded-full blur-3xl" />
       
       <div className="container mx-auto px-6 relative z-10">
-        <div className="grid md:grid-cols-2 gap-16 max-w-5xl mx-auto items-center">
-          <div>
+        <motion.div 
+          className="grid md:grid-cols-2 gap-16 max-w-5xl mx-auto items-center"
+          initial="hidden"
+          animate={isInView ? "visible" : "hidden"}
+          variants={staggerContainer}
+        >
+          <motion.div variants={slideInLeft}>
             <div className="inline-flex items-center gap-2 bg-violet-500/20 border border-violet-500/30 rounded-full px-4 py-2 mb-6">
               <Sparkles className="w-4 h-4 text-violet-400" />
               <span className="text-sm font-medium text-violet-300">{t.contact.tag}</span>
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">{t.contact.title}</h2>
             <p className="text-xl text-white/50">{t.contact.subtitle}</p>
-          </div>
+          </motion.div>
           
-          <div className="card-glass p-8">
-            {status && (
-              <div className={cn(
-                "p-4 rounded-xl mb-6 text-center text-sm font-medium border",
-                status === 'success' 
-                  ? "bg-green-500/20 text-green-400 border-green-500/30" 
-                  : "bg-red-500/20 text-red-400 border-red-500/30"
-              )}>
-                {status === 'success' ? t.contact.success : t.contact.error}
-              </div>
-            )}
+          <motion.div variants={slideInRight} className="card-glass p-8">
+            <AnimatePresence>
+              {status && (
+                <motion.div 
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className={cn(
+                    "p-4 rounded-xl mb-6 text-center text-sm font-medium border",
+                    status === 'success' 
+                      ? "bg-green-500/20 text-green-400 border-green-500/30" 
+                      : "bg-red-500/20 text-red-400 border-red-500/30"
+                  )}
+                >
+                  {status === 'success' ? t.contact.success : t.contact.error}
+                </motion.div>
+              )}
+            </AnimatePresence>
             
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
@@ -684,7 +931,14 @@ function Contact({ t }) {
                   className="min-h-[120px] mt-2 bg-white/5 border-white/10 rounded-xl resize-none text-white placeholder:text-white/30 focus:border-violet-500" 
                 />
               </div>
-              <button type="submit" className="btn-glossy w-full h-12 text-white font-semibold">{t.contact.send}</button>
+              <motion.button 
+                type="submit" 
+                className="btn-glossy w-full h-12 text-white font-semibold"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                {t.contact.send}
+              </motion.button>
             </form>
             
             <div className="flex items-center gap-4 my-6">
@@ -693,39 +947,55 @@ function Contact({ t }) {
               <div className="flex-1 h-px bg-white/10" />
             </div>
             
-            <button className="w-full h-12 flex items-center justify-center gap-3 rounded-xl bg-[#25D366] text-white font-semibold shadow-lg shadow-[#25D366]/30 hover:shadow-xl hover:shadow-[#25D366]/40 transition-all hover:-translate-y-0.5">
+            <motion.button 
+              className="w-full h-12 flex items-center justify-center gap-3 rounded-xl bg-[#25D366] text-white font-semibold shadow-lg shadow-[#25D366]/30"
+              whileHover={{ scale: 1.02, boxShadow: "0 0 30px rgba(37, 211, 102, 0.4)" }}
+              whileTap={{ scale: 0.98 }}
+            >
               <WhatsAppIcon className="w-5 h-5" />
               WhatsApp
-            </button>
-          </div>
-        </div>
+            </motion.button>
+          </motion.div>
+        </motion.div>
       </div>
     </section>
   )
 }
 
-/* Footer */
+/* Footer with motion */
 function Footer({ t }) {
   return (
-    <footer className="bg-slate-950 border-t border-white/5 text-white/40 py-12">
+    <motion.footer 
+      className="bg-slate-950 border-t border-white/5 text-white/40 py-12"
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      viewport={{ once: true }}
+    >
       <div className="container mx-auto px-6">
         <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="flex items-center gap-3">
+          <motion.div 
+            className="flex items-center gap-3"
+            whileHover={{ scale: 1.02 }}
+          >
             <div className="w-8 h-8 bg-gradient-to-br from-violet-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg shadow-violet-500/20">
               <Zap className="w-4 h-4 text-white" />
             </div>
             <span className="text-lg font-bold text-white">Zyllo</span>
-          </div>
+          </motion.div>
           
           <p className="text-sm">{t.footer.copy}</p>
           
           <div className="flex items-center gap-2 text-sm">
-            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+            <motion.span 
+              className="w-2 h-2 bg-green-500 rounded-full"
+              animate={{ scale: [1, 1.3, 1] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            />
             {t.footer.status}
           </div>
         </div>
       </div>
-    </footer>
+    </motion.footer>
   )
 }
 
@@ -733,7 +1003,7 @@ function Footer({ t }) {
 function App() {
   const [lang, setLang] = useState(() => {
     try {
-      const saved = localStorage.getItem('respondeja-lang')
+      const saved = localStorage.getItem('zyllo-lang')
       if (saved === 'en' || saved === 'pt') return saved
       if (navigator.language?.toLowerCase().startsWith('pt')) return 'pt'
     } catch {}
@@ -741,7 +1011,7 @@ function App() {
   })
   
   useEffect(() => {
-    localStorage.setItem('respondeja-lang', lang)
+    localStorage.setItem('zyllo-lang', lang)
     document.documentElement.lang = lang
   }, [lang])
   
@@ -752,6 +1022,7 @@ function App() {
       <Header lang={lang} setLang={setLang} t={t} />
       <main className="bg-slate-950">
         <Hero t={t} />
+        <LogoTicker />
         <Features t={t} />
         <FeatureGrid t={t} />
         <Integrations t={t} />
