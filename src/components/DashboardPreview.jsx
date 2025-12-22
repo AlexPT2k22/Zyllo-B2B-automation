@@ -11,7 +11,7 @@ const DashboardPreview = () => {
           track conversion metrics, and manage your inventory centrally.
         </p>
         <div className="dashboard-image-wrapper">
-          <img src="/src/assets/Screenshot_1.png" alt="Zyllo Dashboard Interface" className="dashboard-image" />
+          <img src="/Screenshot_1.png" alt="Zyllo Dashboard Interface" className="dashboard-image" />
         </div>
       </div>
     </section>

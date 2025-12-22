@@ -20,9 +20,9 @@ const Hero = () => {
         
         <div className="hero-visuals">
           <div className="hero-glow"></div>
-          <img src="/src/assets/Screenshot_1.png" alt="Dashboard Screenshot" className="hero-screenshot" />
-          <img src="/src/assets/Shape Icon.png" alt="3D Shape" className="hero-shape shape-1" />
-          <img src="/src/assets/Shape Icon2.png" alt="3D Shape" className="hero-shape shape-2" />
+          <img src="/Screenshot_1.png" alt="Dashboard Screenshot" className="hero-screenshot" />
+          <img src="/shape-icon.png" alt="3D Shape" className="hero-shape shape-1" />
+          <img src="/shape-icon2.png" alt="3D Shape" className="hero-shape shape-2" />
         </div>
       </div>
     </section>
