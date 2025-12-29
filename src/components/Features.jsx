@@ -4,7 +4,7 @@ import './Features.css';
 
 const features = [
   {
-    icon: <MessageCircle size={24} />,
+    image: '/phone.png',
     title: '24/7 Instant Responses',
     description: "Don't keep your customers waiting. Our rules engine responds to questions about prices, stock, and schedules in seconds.",
   },
@@ -26,13 +26,19 @@ const Features = () => {
       <div className="features-container">
         <h2 className="features-title">Everything you need to scale your sales</h2>
         <p className="features-subtitle">
-          Enjoy customizable lists, team work tools, and smart tracking all in one place. 
+          Enjoy customizable lists, team work tools, and smart tracking all in one place.
           Set tasks, get reminders, and see your progress simply and quickly.
         </p>
         <div className="features-grid">
           {features.map((feature, index) => (
             <div key={index} className="feature-card">
-              <div className="feature-icon">{feature.icon}</div>
+              <div className="feature-icon-wrapper">
+                {feature.image ? (
+                  <img src={feature.image} alt={feature.title} className="feature-floating-img" />
+                ) : (
+                  <div className="feature-icon">{feature.icon}</div>
+                )}
+              </div>
               <h3 className="feature-card-title">{feature.title}</h3>
               <p className="feature-card-desc">{feature.description}</p>
             </div>

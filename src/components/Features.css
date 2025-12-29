@@ -41,10 +41,11 @@
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   backdrop-filter: blur(10px);
   position: relative;
-  overflow: hidden;
+  /* overflow: hidden; Removed to allow floating image to pop out */
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  z-index: 1;
 }
 
 .feature-card:hover {
@@ -113,5 +114,38 @@
 
   .feature-card {
     padding: 2rem;
+  }
+}
+
+.feature-icon-wrapper {
+  margin-bottom: 1rem;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.feature-floating-img {
+  position: absolute;
+  top: -60px;
+  right: -30px;
+  width: 160px;
+  height: auto;
+  filter: drop-shadow(0 30px 40px rgba(0, 0, 0, 0.6));
+  animation: featureFloat 6s ease-in-out infinite;
+  transform-style: preserve-3d;
+  z-index: 10;
+  pointer-events: none;
+}
+
+@keyframes featureFloat {
+  0% {
+    transform: translateY(0px) rotate(5deg);
+  }
+
+  50% {
+    transform: translateY(-15px) rotate(8deg);
+  }
+
+  100% {
+    transform: translateY(0px) rotate(5deg);
   }
 }

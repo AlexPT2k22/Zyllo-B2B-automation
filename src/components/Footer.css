@@ -79,9 +79,19 @@
 }
 
 .footer-logo {
-  font-weight: 700;
-  color: white;
-  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+}
+
+.footer-logo-image {
+  height: 24px;
+  width: auto;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+.footer-logo-image:hover {
+  opacity: 1;
 }
 
 .footer-links {

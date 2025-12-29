@@ -25,7 +25,9 @@ const Footer = () => {
         </div>
 
         <div className="footer-bottom">
-          <div className="footer-logo">Zyllo</div>
+          <div className="footer-logo">
+            <img src="/Zolly Logo.png" alt="Zyllo" className="footer-logo-image" />
+          </div>
           <div className="footer-copyright">
             &copy; {new Date().getFullYear()} Zyllo Inc. All rights reserved.
           </div>
