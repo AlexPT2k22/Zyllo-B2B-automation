@@ -15,6 +15,15 @@ const Footer = () => {
             <button className="footer-button">Get started</button>
           </div>
         </div>
+
+        <div className="footer-links">
+          <a href="#" className="footer-link">Terms of Use</a>
+          <span className="footer-divider">•</span>
+          <a href="#" className="footer-link">Privacy Policy</a>
+          <span className="footer-divider">•</span>
+          <a href="#" className="footer-link">Support</a>
+        </div>
+
         <div className="footer-bottom">
           <div className="footer-logo">Zyllo</div>
           <div className="footer-copyright">

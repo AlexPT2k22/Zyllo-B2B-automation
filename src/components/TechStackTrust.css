@@ -1,0 +1,74 @@
+.tech-trust {
+  padding: 3rem 2rem;
+  background: linear-gradient(180deg, rgba(10, 10, 15, 0.9) 0%, rgba(10, 10, 15, 0.95) 100%);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.tech-trust-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.tech-trust-icons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 3rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
+.trust-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  color: #555;
+  transition: color 0.3s ease;
+}
+
+.trust-item:hover {
+  color: #888;
+}
+
+.trust-icon {
+  width: 32px;
+  height: 32px;
+  opacity: 0.6;
+  transition: opacity 0.3s ease;
+}
+
+.trust-item:hover .trust-icon {
+  opacity: 0.9;
+}
+
+.trust-item span {
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tech-trust-message {
+  font-size: 0.9rem;
+  color: #666;
+  margin: 0;
+  font-weight: 400;
+}
+
+@media (max-width: 768px) {
+  .tech-trust-icons {
+    gap: 2rem;
+  }
+  
+  .trust-icon {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .trust-item span {
+    font-size: 0.65rem;
+  }
+}

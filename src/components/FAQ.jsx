@@ -3,20 +3,24 @@ import './FAQ.css';
 
 const faqs = [
   {
-    question: 'Is there a free trial available?',
-    answer: 'Yes, you can try Zyllo for free for 30 days. If you want, we’ll provide you with a free, personalized 30-minute onboarding call to get you up and running as soon as possible.',
+    question: 'Will I get banned from Instagram?',
+    answer: 'No. Zyllo uses the Official Meta API, which is the same technology used by major brands and verified business tools. Your account is 100% safe and compliant with Instagram\'s terms of service.',
   },
   {
-    question: 'Can I change my plan later?',
-    answer: 'Of course. Our pricing scales with your company. Chat to our friendly team to find a solution that works for you.',
+    question: 'Do I need to know how to code?',
+    answer: 'Not at all! Zyllo is designed for business owners, not developers. Our visual rule builder lets you set up automated responses in minutes with zero technical knowledge.',
   },
   {
-    question: 'What is your cancellation policy?',
-    answer: 'We understand that things change. You can cancel your plan at any time and we’ll refund you the difference already paid.',
+    question: 'Can I cancel anytime?',
+    answer: 'Absolutely. There are no long-term contracts or hidden fees. You can cancel your subscription at any time from your dashboard, and you won\'t be charged again.',
   },
   {
-    question: 'Can other info be added to an invoice?',
-    answer: 'At the moment, the only way to add additional information to invoices is to add the information to the workspace\'s name.',
+    question: 'How quickly can I get started?',
+    answer: 'Most users are fully set up in under 10 minutes. Just connect your Instagram or TikTok account, define your keywords, and you\'re ready to automate.',
+  },
+  {
+    question: 'Does Zyllo work with TikTok too?',
+    answer: 'Yes! Zyllo supports both Instagram and TikTok business accounts. You can manage comments and DMs from both platforms in one unified dashboard.',
   },
 ];
 
@@ -33,8 +37,8 @@ const FAQ = () => {
         <h2 className="faq-title">Frequently asked questions</h2>
         <div className="faq-list">
           {faqs.map((faq, index) => (
-            <div 
-              key={index} 
+            <div
+              key={index}
               className={`faq-item ${activeIndex === index ? 'active' : ''}`}
               onClick={() => toggleFAQ(index)}
             >
