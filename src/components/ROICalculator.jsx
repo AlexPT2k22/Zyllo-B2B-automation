@@ -21,14 +21,16 @@ const ROICalculator = () => {
                 <div className="roi-header">
                     <h2 className="roi-title">Calculate Your Lost Revenue</h2>
                     <p className="roi-subtitle">
-                        See how much money you're leaving on the table by not automating your DMs
+                        See how much you could be making by automating your DMs
                     </p>
                 </div>
 
-                <div className="roi-content">
-                    <div className="roi-sliders">
+                <div className="roi-dashboard">
+                    <div className="roi-inputs">
+                        <h3 className="inputs-title">Your Metrics</h3>
+
                         <div className="slider-group">
-                            <div className="slider-header">
+                            <div className="slider-header group-header">
                                 <label>Instagram Followers</label>
                                 <span className="slider-value">{formatNumber(followers)}</span>
                             </div>
@@ -41,15 +43,11 @@ const ROICalculator = () => {
                                 onChange={(e) => setFollowers(Number(e.target.value))}
                                 className="roi-slider"
                             />
-                            <div className="slider-range">
-                                <span>1K</span>
-                                <span>100K</span>
-                            </div>
                         </div>
 
                         <div className="slider-group">
-                            <div className="slider-header">
-                                <label>DMs Received Per Day</label>
+                            <div className="slider-header group-header">
+                                <label>Messages / Day</label>
                                 <span className="slider-value">{dmsPerDay}</span>
                             </div>
                             <input
@@ -61,15 +59,11 @@ const ROICalculator = () => {
                                 onChange={(e) => setDmsPerDay(Number(e.target.value))}
                                 className="roi-slider"
                             />
-                            <div className="slider-range">
-                                <span>5</span>
-                                <span>100</span>
-                            </div>
                         </div>
 
                         <div className="slider-group">
-                            <div className="slider-header">
-                                <label>Average Product Value</label>
+                            <div className="slider-header group-header">
+                                <label>Avg. Order Value</label>
                                 <span className="slider-value">€{productValue}</span>
                             </div>
                             <input
@@ -81,36 +75,35 @@ const ROICalculator = () => {
                                 onChange={(e) => setProductValue(Number(e.target.value))}
                                 className="roi-slider"
                             />
-                            <div className="slider-range">
-                                <span>€10</span>
-                                <span>€500</span>
-                            </div>
                         </div>
                     </div>
 
-                    <div className="roi-result">
-                        <div className="result-card">
-                            <div className="result-label">Potential Monthly Revenue</div>
-                            <div className="result-amount">
-                                <span className="currency">€</span>
-                                <span className="amount">{formatNumber(monthlyPotential)}</span>
+                    <div className="roi-results-panel">
+                        <h3 className="results-title">Monthly Potential</h3>
+
+                        <div className="potential-display">
+                            <span className="currency">€</span>
+                            <span className="amount">{formatNumber(monthlyPotential)}</span>
+                        </div>
+
+                        <p className="potential-subtitle">Additional Revenue</p>
+
+                        <div className="roi-breakdown">
+                            <div className="breakdown-row">
+                                <span>Annual Potential</span>
+                                <span>€{formatNumber(monthlyPotential * 12)}</span>
                             </div>
-                            <p className="result-description">
-                                You could be making <strong>€{formatNumber(monthlyPotential)}/month</strong> more with automation.
-                            </p>
-                            <div className="result-comparison">
-                                <div className="comparison-item">
-                                    <span className="comparison-label">Zyllo Pro Plan</span>
-                                    <span className="comparison-price">€79/month</span>
-                                </div>
-                                <div className="comparison-item highlight">
-                                    <span className="comparison-label">Your ROI</span>
-                                    <span className="comparison-roi">{Math.round((monthlyPotential / 79) * 100)}%</span>
-                                </div>
+                            <div className="breakdown-row highlight">
+                                <span>Zyllo Cost</span>
+                                <span>€79/mo</span>
                             </div>
-                            <a href="https://framer.link/ZQ2l2Kk" className="roi-cta">
-                                Start Automating Now
+                        </div>
+
+                        <div className="roi-actions">
+                            <a href="https://framer.link/ZQ2l2Kk" className="roi-cta-button">
+                                Start Automating
                             </a>
+                            <p className="guarantee-text">30-day money-back guarantee</p>
                         </div>
                     </div>
                 </div>

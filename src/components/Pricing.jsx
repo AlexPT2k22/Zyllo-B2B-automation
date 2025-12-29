@@ -1,46 +1,49 @@
 import React, { useState } from 'react';
 import './Pricing.css';
+import { Check } from 'lucide-react';
 
 const plans = [
   {
     name: 'Essential',
     monthlyPrice: 29,
+    description: 'Perfect for getting started',
     buttonText: 'Start now',
     features: [
-      'Up to 500 assisted conversations/month',
-      'Automatic response to comments and DMs',
-      'Configuration of 5 response flows',
-      'Support via chat'
+      'Up to 500 assisted conversations',
+      'Automatic response to comments',
+      '5 custom response flows',
+      'Basic chat support'
     ],
-    theme: 'dark'
+    highlight: false
   },
   {
     name: 'Pro',
     monthlyPrice: 79,
+    description: 'Best for growing brands',
     buttonText: 'Try for free',
-    badge: 'Most popular',
+    badge: 'Most Popular',
     features: [
-      'Unlimited assisted conversations',
-      'Abandoned Cart Recovery via DM',
-      'Integration with Product Catalog',
-      'Complete Analytics Dashboard',
-      'Qualified lead filter'
+      'Unlimited conversations',
+      'Abandoned Cart Recovery',
+      'Product Catalog Sync',
+      'Advanced Analytics Dashboard',
+      'Qualified Lead Filtering'
     ],
-    theme: 'light'
+    highlight: true
   },
   {
     name: 'Business',
     monthlyPrice: 149,
-    buttonText: 'Contact us',
+    description: 'For scaling agencies',
+    buttonText: 'Contact Sales',
     features: [
-      'Everything in the Pro plan',
+      'Everything in Pro',
       'Priority Webhook processing',
-      'Weekly ROI reports via email',
+      'Weekly ROI email reports',
       'Priority 24/7 support',
-      'Access to AI',
-      'Early access to new features (Beta)'
+      'Early access to Beta features'
     ],
-    theme: 'dark'
+    highlight: false
   }
 ];
 
@@ -49,49 +52,76 @@ const Pricing = () => {
 
   const getPrice = (monthlyPrice) => {
     if (isAnnual) {
-      const annualPrice = Math.round(monthlyPrice * 12 * 0.8);
-      return `$${annualPrice}`;
+      const annualPrice = Math.round(monthlyPrice * 12 * 0.8 / 12);
+      return `€${annualPrice}`;
     }
-    return `$${monthlyPrice}`;
+    return `€${monthlyPrice}`;
   };
-
-  const getPeriod = () => isAnnual ? '/year' : '/month';
 
   return (
     <section className="pricing" id="pricing">
       <div className="pricing-container">
-        <h2 className="pricing-title">Pricing</h2>
-        <p className="pricing-subtitle">Upgrade for unlimited tasks, and exclusive features.</p>
-        
-        <div className="pricing-toggle">
-          <span className={!isAnnual ? 'active' : ''}>Monthly</span>
-          <label className="toggle-switch">
-            <input 
-              type="checkbox" 
-              checked={isAnnual} 
-              onChange={() => setIsAnnual(!isAnnual)} 
-            />
-            <span className="toggle-slider"></span>
-          </label>
-          <span className={isAnnual ? 'active' : ''}>Annual <span className="discount-badge">-20%</span></span>
+        <div className="pricing-header">
+          <h2 className="pricing-title">Simple, transparent pricing</h2>
+          <p className="pricing-subtitle">
+            Choose the plan that's right for your business. No hidden fees.
+          </p>
+
+          <div className="pricing-toggle-wrapper">
+            <span className={`toggle-label ${!isAnnual ? 'active' : ''}`}>Monthly</span>
+            <button
+              className={`pricing-toggle-btn ${isAnnual ? 'active' : ''}`}
+              onClick={() => setIsAnnual(!isAnnual)}
+              aria-label="Toggle annual pricing"
+            >
+              <div className="toggle-thumb" />
+            </button>
+            <span className={`toggle-label ${isAnnual ? 'active' : ''}`}>
+              Annual <span className="save-badge">Save 20%</span>
+            </span>
+          </div>
         </div>
 
         <div className="pricing-grid">
           {plans.map((plan, index) => (
-            <div key={index} className={`pricing-card ${plan.theme}`}>
-              <div className="card-header">
-                <h3 className="plan-name">{plan.name}</h3>
-                {plan.badge && <span className="plan-badge">{plan.badge}</span>}
+            <div key={index} className={`pricing-card ${plan.highlight ? 'highlighted' : ''}`}>
+              {plan.highlight && (
+                <div className="popular-badge">Most Popular</div>
+              )}
+
+              <div className="card-content">
+                <div className="plan-header">
+                  <h3 className="plan-name">{plan.name}</h3>
+                  <p className="plan-desc">{plan.description}</p>
+                </div>
+
+                <div className="plan-price-box">
+                  <span className="currency">€</span>
+                  <span className="amount">
+                    {isAnnual ? Math.round(plan.monthlyPrice * 0.8) : plan.monthlyPrice}
+                  </span>
+                  <span className="period">/month</span>
+                </div>
+
+                {isAnnual && (
+                  <div className="billed-yearly">
+                    Billed €{Math.round(plan.monthlyPrice * 0.8 * 12)} yearly
+                  </div>
+                )}
+
+                <button className={`plan-button ${plan.highlight ? 'primary' : 'secondary'}`}>
+                  {plan.buttonText}
+                </button>
+
+                <div className="plan-features">
+                  {plan.features.map((feature, i) => (
+                    <div key={i} className="feature-item">
+                      <Check className="check-icon" size={18} />
+                      <span>{feature}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div className="plan-price">
-                {getPrice(plan.monthlyPrice)}<span className="plan-period">{getPeriod()}</span>
-              </div>
-              <button className="plan-button">{plan.buttonText}</button>
-              <ul className="plan-features">
-                {plan.features.map((feature, i) => (
-                  <li key={i}><span className="check">✓</span> {feature}</li>
-                ))}
-              </ul>
             </div>
           ))}
         </div>
@@ -101,4 +131,3 @@ const Pricing = () => {
 };
 
 export default Pricing;
-
