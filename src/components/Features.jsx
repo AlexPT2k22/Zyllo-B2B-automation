@@ -9,12 +9,12 @@ const features = [
     description: "Don't keep your customers waiting. Our rules engine responds to questions about prices, stock, and schedules in seconds.",
   },
   {
-    icon: <Zap size={24} />,
+    image: '/charts.png',
     title: 'Qualify Leads',
     description: "Automatically identify high-intent buyers and route them to your sales team or checkout page.",
   },
   {
-    icon: <ShoppingCart size={24} />,
+    image: '/cart.png',
     title: 'Recover Carts',
     description: "Send automated follow-ups to customers who abandoned their shopping carts on Instagram and TikTok.",
   },

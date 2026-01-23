@@ -31,22 +31,6 @@ const ROICalculator = () => {
 
                         <div className="slider-group">
                             <div className="slider-header group-header">
-                                <label>Instagram Followers</label>
-                                <span className="slider-value">{formatNumber(followers)}</span>
-                            </div>
-                            <input
-                                type="range"
-                                min="1000"
-                                max="100000"
-                                step="1000"
-                                value={followers}
-                                onChange={(e) => setFollowers(Number(e.target.value))}
-                                className="roi-slider"
-                            />
-                        </div>
-
-                        <div className="slider-group">
-                            <div className="slider-header group-header">
                                 <label>Messages / Day</label>
                                 <span className="slider-value">{dmsPerDay}</span>
                             </div>
