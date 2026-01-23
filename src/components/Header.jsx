@@ -1,22 +1,30 @@
-import React from 'react';
-import './Header.css';
+import { Link } from "react-router-dom";
+import "./Header.css";
 
 const Header = () => {
   return (
     <header className="header">
       <div className="header-container">
         <div className="logo">
-          <a href="/">
+          <Link to="/">
             <img src="/Zolly Logo.png" alt="Zyllo" className="logo-image" />
-          </a>
+          </Link>
         </div>
         <nav className="nav-menu">
-          <a href="#product" className="nav-link">Product</a>
-          <a href="#pricing" className="nav-link">Pricing</a>
-          <a href="#faq" className="nav-link">FAQ</a>
+          <a href="/#product" className="nav-link">
+            Product
+          </a>
+          <a href="/#pricing" className="nav-link">
+            Pricing
+          </a>
+          <a href="/#faq" className="nav-link">
+            FAQ
+          </a>
         </nav>
         <div className="cta-container">
-          <a href="https://framer.link/ZQ2l2Kk" className="cta-button">Try now</a>
+          <Link to="/waitlist" className="cta-button">
+            Try now
+          </Link>
         </div>
       </div>
     </header>

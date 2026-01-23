@@ -1,50 +1,51 @@
-import React, { useState } from 'react';
-import './Pricing.css';
-import { Check } from 'lucide-react';
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import "./Pricing.css";
+import { Check } from "lucide-react";
 
 const plans = [
   {
-    name: 'Essential',
+    name: "Essential",
     monthlyPrice: 29,
-    description: 'Perfect for getting started',
-    buttonText: 'Start now',
+    description: "Perfect for getting started",
+    buttonText: "Start now",
     features: [
-      'Up to 500 assisted conversations',
-      'Automatic response to comments',
-      '5 custom response flows',
-      'Basic chat support'
+      "Up to 500 assisted conversations",
+      "Automatic response to comments",
+      "5 custom response flows",
+      "Basic chat support",
     ],
-    highlight: false
+    highlight: false,
   },
   {
-    name: 'Pro',
+    name: "Pro",
     monthlyPrice: 79,
-    description: 'Best for growing brands',
-    buttonText: 'Try for free',
-    badge: 'Most Popular',
+    description: "Best for growing brands",
+    buttonText: "Try for free",
+    badge: "Most Popular",
     features: [
-      'Unlimited conversations',
-      'Abandoned Cart Recovery',
-      'Product Catalog Sync',
-      'Advanced Analytics Dashboard',
-      'Qualified Lead Filtering'
+      "Unlimited conversations",
+      "Abandoned Cart Recovery",
+      "Product Catalog Sync",
+      "Advanced Analytics Dashboard",
+      "Qualified Lead Filtering",
     ],
-    highlight: true
+    highlight: true,
   },
   {
-    name: 'Business',
+    name: "Business",
     monthlyPrice: 149,
-    description: 'For scaling agencies',
-    buttonText: 'Contact Sales',
+    description: "For scaling agencies",
+    buttonText: "Contact Sales",
     features: [
-      'Everything in Pro',
-      'Priority Webhook processing',
-      'Weekly ROI email reports',
-      'Priority 24/7 support',
-      'Early access to Beta features'
+      "Everything in Pro",
+      "Priority Webhook processing",
+      "Weekly ROI email reports",
+      "Priority 24/7 support",
+      "Early access to Beta features",
     ],
-    highlight: false
-  }
+    highlight: false,
+  },
 ];
 
 const Pricing = () => {
@@ -52,7 +53,7 @@ const Pricing = () => {
 
   const getPrice = (monthlyPrice) => {
     if (isAnnual) {
-      const annualPrice = Math.round(monthlyPrice * 12 * 0.8 / 12);
+      const annualPrice = Math.round((monthlyPrice * 12 * 0.8) / 12);
       return `€${annualPrice}`;
     }
     return `€${monthlyPrice}`;
@@ -68,15 +69,17 @@ const Pricing = () => {
           </p>
 
           <div className="pricing-toggle-wrapper">
-            <span className={`toggle-label ${!isAnnual ? 'active' : ''}`}>Monthly</span>
+            <span className={`toggle-label ${!isAnnual ? "active" : ""}`}>
+              Monthly
+            </span>
             <button
-              className={`pricing-toggle-btn ${isAnnual ? 'active' : ''}`}
+              className={`pricing-toggle-btn ${isAnnual ? "active" : ""}`}
               onClick={() => setIsAnnual(!isAnnual)}
               aria-label="Toggle annual pricing"
             >
               <div className="toggle-thumb" />
             </button>
-            <span className={`toggle-label ${isAnnual ? 'active' : ''}`}>
+            <span className={`toggle-label ${isAnnual ? "active" : ""}`}>
               Annual <span className="save-badge">Save 20%</span>
             </span>
           </div>
@@ -84,7 +87,10 @@ const Pricing = () => {
 
         <div className="pricing-grid">
           {plans.map((plan, index) => (
-            <div key={index} className={`pricing-card ${plan.highlight ? 'highlighted' : ''}`}>
+            <div
+              key={index}
+              className={`pricing-card ${plan.highlight ? "highlighted" : ""}`}
+            >
               {plan.highlight && (
                 <div className="popular-badge">Most Popular</div>
               )}
@@ -98,7 +104,9 @@ const Pricing = () => {
                 <div className="plan-price-box">
                   <span className="currency">€</span>
                   <span className="amount">
-                    {isAnnual ? Math.round(plan.monthlyPrice * 0.8) : plan.monthlyPrice}
+                    {isAnnual
+                      ? Math.round(plan.monthlyPrice * 0.8)
+                      : plan.monthlyPrice}
                   </span>
                   <span className="period">/month</span>
                 </div>
@@ -109,9 +117,13 @@ const Pricing = () => {
                   </div>
                 )}
 
-                <button className={`plan-button ${plan.highlight ? 'primary' : 'secondary'}`}>
-                  {plan.buttonText}
-                </button>
+                <Link to="/waitlist" style={{ width: "100%" }}>
+                  <button
+                    className={`plan-button ${plan.highlight ? "primary" : "secondary"}`}
+                  >
+                    {plan.buttonText}
+                  </button>
+                </Link>
 
                 <div className="plan-features">
                   {plan.features.map((feature, i) => (
