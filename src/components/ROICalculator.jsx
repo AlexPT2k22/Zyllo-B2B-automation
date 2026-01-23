@@ -79,7 +79,7 @@ const ROICalculator = () => {
                             </div>
                             <div className="breakdown-row highlight">
                                 <span>Zyllo Cost</span>
-                                <span>€79/mo</span>
+                                <span>€29/mo</span>
                             </div>
                         </div>
 

@@ -109,20 +109,11 @@
 
 /* Mockup 1: Connect */
 .connect-mockup {
-    background: linear-gradient(135deg, rgba(20, 20, 30, 0.8) 0%, rgba(30, 30, 40, 0.8) 100%);
     border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
     padding: 1.5rem;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-    transform: rotateY(-5deg) rotateX(5deg);
-    transition: transform 0.3s ease;
-}
-
-.connect-mockup:hover {
-    transform: rotateY(0) rotateX(0);
 }
 
 .mockup-header {
@@ -153,10 +144,11 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.1);
     padding: 1rem;
-    border-radius: 8px;
+    border-radius: 16px;
     border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
 
 .platform-icon {

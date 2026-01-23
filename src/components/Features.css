@@ -34,25 +34,27 @@
 }
 
 .feature-card {
-  background: rgba(20, 20, 25, 0.6);
+  background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 24px;
+  border-radius: 32px;
   padding: 2.5rem;
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-  backdrop-filter: blur(10px);
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
   position: relative;
   /* overflow: hidden; Removed to allow floating image to pop out */
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
   z-index: 1;
+  box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.2);
 }
 
 .feature-card:hover {
-  transform: translateY(-8px);
-  border-color: rgba(124, 58, 237, 0.3);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-  background: rgba(20, 20, 30, 0.8);
+  transform: translateY(-8px) scale(1.02);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 32px 64px rgba(0, 0, 0, 0.4);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .feature-card::before {
