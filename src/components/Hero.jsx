@@ -29,7 +29,7 @@ const Hero = () => {
         </p>
         <div className="hero-cta">
           <Link to="/waitlist" className="hero-button">
-            Try now
+            Join Waitlist
           </Link>
         </div>
 

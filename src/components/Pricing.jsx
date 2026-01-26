@@ -8,7 +8,7 @@ const plans = [
     name: "Essential",
     monthlyPrice: 29,
     description: "Perfect for getting started",
-    buttonText: "Start now",
+    buttonText: "Join Waitlist",
     features: [
       "Up to 500 assisted conversations",
       "Automatic response to comments",
@@ -21,7 +21,7 @@ const plans = [
     name: "Pro",
     monthlyPrice: 79,
     description: "Best for growing brands",
-    buttonText: "Try for free",
+    buttonText: "Join Waitlist",
     badge: "Most Popular",
     features: [
       "Unlimited conversations",
@@ -36,7 +36,7 @@ const plans = [
     name: "Business",
     monthlyPrice: 149,
     description: "For scaling agencies",
-    buttonText: "Contact Sales",
+    buttonText: "Join Waitlist",
     features: [
       "Everything in Pro",
       "Priority Webhook processing",

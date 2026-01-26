@@ -23,7 +23,7 @@ const Header = () => {
         </nav>
         <div className="cta-container">
           <Link to="/waitlist" className="cta-button">
-            Try now
+            Join Waitlist
           </Link>
         </div>
       </div>

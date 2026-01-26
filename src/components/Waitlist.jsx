@@ -6,18 +6,32 @@ const Waitlist = () => {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState("idle"); // idle, loading, success, error
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email) return;
 
     setStatus("loading");
 
-    // Simulate API call
-    setTimeout(() => {
-      setStatus("success");
-      setEmail("");
-      console.log("Email captured:", email);
-    }, 1500);
+    try {
+      const response = await fetch("https://formspree.io/f/mdagzdrl", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      if (response.ok) {
+        setStatus("success");
+        setEmail("");
+      } else {
+        setStatus("error");
+      }
+    } catch (error) {
+      console.error("Submission error:", error);
+      setStatus("error");
+    }
   };
 
   return (
@@ -27,13 +41,14 @@ const Waitlist = () => {
           <div className="waitlist-badge">Coming Soon</div>
 
           <h2 className="waitlist-title">
-            Join the future of <br />
-            <span style={{ color: "#a855f7" }}>automated sales</span>
+            Automated sales through{" "}
+            <span style={{ color: "#a855f7" }}>smart messaging</span>
           </h2>
 
           <p className="waitlist-desc">
-            Be the first to experience Zyllo. Join our exclusive waitlist to get
-            early access and special launch pricing.
+            Zyllo helps you respond instantly, qualify leads, and recover lost
+            revenue automatically. Join the waitlist to get early access and
+            special launch pricing.
           </p>
 
           {status === "success" ? (
@@ -45,29 +60,40 @@ const Waitlist = () => {
                 <span>You're on the list! We'll be in touch soon.</span>
               </div>
             </div>
+          ) : status === "error" ? (
+            <div className="error-message">
+              <span>Something went wrong. Please try again.</span>
+            </div>
           ) : (
-            <form className="waitlist-form" onSubmit={handleSubmit}>
-              <input
-                type="email"
-                placeholder="Enter your work email"
-                className="waitlist-input"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                disabled={status === "loading"}
-              />
-              <button
-                type="submit"
-                className="waitlist-btn"
-                disabled={status === "loading"}
-              >
-                {status === "loading" ? (
-                  <Loader2 className="animate-spin" size={20} />
-                ) : (
-                  "Join Waitlist"
-                )}
-              </button>
-            </form>
+            <>
+              <form className="waitlist-form" onSubmit={handleSubmit}>
+                <input
+                  type="email"
+                  placeholder="Enter your email"
+                  className="waitlist-input"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  disabled={status === "loading"}
+                />
+                <button
+                  type="submit"
+                  className="waitlist-btn"
+                  disabled={status === "loading"}
+                >
+                  {status === "loading" ? (
+                    <Loader2 className="animate-spin" size={20} />
+                  ) : (
+                    "Join Waitlist"
+                  )}
+                </button>
+              </form>
+              <div className="waitlist-microcopy">
+                <p className="waitlist-microcopy-text">
+                  We’ll only email you about early access.
+                </p>
+              </div>
+            </>
           )}
 
           <div className="social-proof">
@@ -95,7 +121,7 @@ const Waitlist = () => {
               ></div>
             </div>
             <p className="proof-text">
-              Join <strong>500+</strong> others waiting
+              Join <strong>500+</strong> businesses already on the waitlist
             </p>
           </div>
         </div>
