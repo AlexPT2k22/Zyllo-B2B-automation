@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { ArrowRight, Check, Loader2 } from "lucide-react";
+import { supabase } from "../lib/supabase";
 import "./Waitlist.css";
 
 const Waitlist = () => {
@@ -13,20 +14,20 @@ const Waitlist = () => {
     setStatus("loading");
 
     try {
-      const response = await fetch("https://formspree.io/f/mdagzdrl", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify({ email }),
-      });
+      const { error } = await supabase.from("waitlist").insert({ email });
 
-      if (response.ok) {
+      if (error) {
+        if (error.code === "23505") {
+          // Unique constraint violation - email already exists
+          setStatus("success");
+          setEmail("");
+        } else {
+          console.error("Supabase error:", error);
+          setStatus("error");
+        }
+      } else {
         setStatus("success");
         setEmail("");
-      } else {
-        setStatus("error");
       }
     } catch (error) {
       console.error("Submission error:", error);
