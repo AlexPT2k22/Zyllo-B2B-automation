@@ -1,0 +1,89 @@
+.confirm-section {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.confirm-container {
+  max-width: 500px;
+  width: 100%;
+}
+
+.confirm-card {
+  padding: 3rem 2rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.confirm-icon.loading {
+  color: #a855f7;
+  animation: spin 1s linear infinite;
+}
+
+.confirm-icon-wrapper {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.confirm-icon-wrapper.success {
+  background: rgba(34, 197, 94, 0.1);
+  color: #22c55e;
+}
+
+.confirm-icon-wrapper.error {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.confirm-card h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: white;
+  margin: 0;
+}
+
+.confirm-card p {
+  color: #aaa;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.confirm-subtitle {
+  color: #666 !important;
+  font-size: 0.95rem !important;
+}
+
+.confirm-btn {
+  margin-top: 1.5rem;
+  background: white;
+  color: black;
+  padding: 0.875rem 2rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 1rem;
+  text-decoration: none;
+  transition: transform 0.2s ease;
+}
+
+.confirm-btn:hover {
+  transform: translateY(-2px);
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

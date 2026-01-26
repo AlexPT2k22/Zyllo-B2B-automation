@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { ArrowRight, Check, Loader2 } from "lucide-react";
-import { supabase } from "../lib/supabase";
 import "./Waitlist.css";
 
 const Waitlist = () => {
@@ -14,20 +13,25 @@ const Waitlist = () => {
     setStatus("loading");
 
     try {
-      const { error } = await supabase.from("waitlist").insert({ email });
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/waitlist-signup`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify({ email }),
+        },
+      );
 
-      if (error) {
-        if (error.code === "23505") {
-          // Unique constraint violation - email already exists
-          setStatus("success");
-          setEmail("");
-        } else {
-          console.error("Supabase error:", error);
-          setStatus("error");
-        }
-      } else {
+      if (response.ok) {
         setStatus("success");
         setEmail("");
+      } else {
+        const data = await response.json();
+        console.error("Signup error:", data);
+        setStatus("error");
       }
     } catch (error) {
       console.error("Submission error:", error);
@@ -58,7 +62,7 @@ const Waitlist = () => {
                 style={{ display: "flex", alignItems: "center", gap: "8px" }}
               >
                 <Check size={20} />
-                <span>You're on the list! We'll be in touch soon.</span>
+                <span>Check your email to confirm your spot!</span>
               </div>
             </div>
           ) : status === "error" ? (

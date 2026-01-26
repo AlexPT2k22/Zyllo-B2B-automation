@@ -4,6 +4,7 @@ import Header from "./components/Header";
 import Footer from "./components/Footer";
 import Home from "./pages/Home";
 import WaitlistPage from "./pages/WaitlistPage";
+import ConfirmPage from "./pages/ConfirmPage";
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/waitlist" element={<WaitlistPage />} />
+          <Route path="/confirm" element={<ConfirmPage />} />
         </Routes>
       </main>
       <Footer />
