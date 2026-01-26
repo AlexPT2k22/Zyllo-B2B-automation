@@ -20,7 +20,7 @@ const ComparisonTable = () => {
         },
         {
             name: 'Monthly Cost',
-            zyllo: '€79',
+            zyllo: '€29',
             manual: 'Your time',
             agency: '€800+',
             zylloWin: true,

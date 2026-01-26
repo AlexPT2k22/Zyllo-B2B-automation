@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ArrowRight, CheckCircle, Loader2 } from "lucide-react";
+import { ArrowRight, Check, Loader2 } from "lucide-react";
 import "./Waitlist.css";
 
 const Waitlist = () => {
@@ -32,7 +32,7 @@ const Waitlist = () => {
           </h2>
 
           <p className="waitlist-desc">
-            Be the first to experience Zolly. Join our exclusive waitlist to get
+            Be the first to experience Zyllo. Join our exclusive waitlist to get
             early access and special launch pricing.
           </p>
 
@@ -41,7 +41,7 @@ const Waitlist = () => {
               <div
                 style={{ display: "flex", alignItems: "center", gap: "8px" }}
               >
-                <CheckCircle size={20} />
+                <Check size={20} />
                 <span>You're on the list! We'll be in touch soon.</span>
               </div>
             </div>
@@ -95,7 +95,7 @@ const Waitlist = () => {
               ></div>
             </div>
             <p className="proof-text">
-              Join <strong>2,000+</strong> others waiting
+              Join <strong>500+</strong> others waiting
             </p>
           </div>
         </div>

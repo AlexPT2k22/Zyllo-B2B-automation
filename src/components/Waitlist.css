@@ -1,5 +1,5 @@
 .waitlist-section {
-  padding: 8rem 2rem;
+  padding: 3.2rem 2rem;
   position: relative;
   overflow: hidden;
 }
@@ -13,13 +13,7 @@
 }
 
 .waitlist-card {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 32px;
   padding: 4rem 2rem;
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.2);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -36,11 +30,6 @@
   left: -50%;
   width: 200%;
   height: 200%;
-  background: radial-gradient(
-    circle at center,
-    rgba(124, 58, 237, 0.15) 0%,
-    transparent 50%
-  );
   pointer-events: none;
   z-index: -1;
 }
@@ -62,9 +51,10 @@
   font-size: 3.5rem;
   font-weight: 700;
   color: white;
-  line-height: 1.1;
   letter-spacing: -0.02em;
   margin: 0;
+  line-height: 0.8;
+  font-family: 'Switzer', sans-serif;
 }
 
 .waitlist-desc {
@@ -99,7 +89,6 @@
   outline: none;
   border-color: #7c3aed;
   background: rgba(255, 255, 255, 0.08);
-  box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.1);
 }
 
 .waitlist-input::placeholder {
@@ -107,8 +96,8 @@
 }
 
 .waitlist-btn {
-  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
-  color: white;
+  background: white;
+  color: black;
   border: none;
   border-radius: 16px;
   padding: 0 2rem;
@@ -117,12 +106,10 @@
   cursor: pointer;
   transition: all 0.3s ease;
   white-space: nowrap;
-  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
 }
 
 .waitlist-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(124, 58, 237, 0.4);
 }
 
 .waitlist-btn:disabled {
@@ -170,6 +157,19 @@
   border-radius: 16px;
   font-weight: 500;
   animation: fadeIn 0.5s ease;
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes fadeIn {
