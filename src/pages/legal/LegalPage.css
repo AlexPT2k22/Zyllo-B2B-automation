@@ -1,0 +1,225 @@
+/* Legal Pages Shared Styles */
+.legal-page {
+  min-height: 100vh;
+  padding: 120px 20px 80px;
+}
+
+.legal-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.legal-header {
+  text-align: center;
+  margin-bottom: 48px;
+}
+
+.legal-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 16px 0;
+  background: linear-gradient(135deg, #ffffff 0%, #a855f7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.legal-updated {
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.legal-content {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 40px;
+}
+
+.legal-content h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 32px 0 16px 0;
+}
+
+.legal-content h2:first-child {
+  margin-top: 0;
+}
+
+.legal-content h3 {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 24px 0 12px 0;
+}
+
+.legal-content p {
+  font-size: 1rem;
+  line-height: 1.8;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0 0 16px 0;
+}
+
+.legal-content ul,
+.legal-content ol {
+  margin: 0 0 16px 0;
+  padding-left: 24px;
+}
+
+.legal-content li {
+  font-size: 1rem;
+  line-height: 1.8;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 8px;
+  list-style: disc;
+}
+
+.legal-content ol li {
+  list-style: decimal;
+}
+
+.legal-content a {
+  color: #a855f7;
+  text-decoration: underline;
+  transition: color 0.2s ease;
+}
+
+.legal-content a:hover {
+  color: #c084fc;
+}
+
+.legal-content strong {
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 600;
+}
+
+.legal-content .highlight-box {
+  background: rgba(168, 85, 247, 0.1);
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  border-radius: 12px;
+  padding: 20px;
+  margin: 24px 0;
+}
+
+.legal-content .highlight-box p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* Data Deletion Form */
+.deletion-form {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 24px;
+  margin-top: 24px;
+}
+
+.deletion-form label {
+  display: block;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 8px;
+}
+
+.deletion-form input,
+.deletion-form textarea {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
+  font-size: 1rem;
+  font-family: inherit;
+  margin-bottom: 16px;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+
+.deletion-form input:focus,
+.deletion-form textarea:focus {
+  outline: none;
+  border-color: #a855f7;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.deletion-form textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.deletion-form button {
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.deletion-form button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(168, 85, 247, 0.3);
+}
+
+.deletion-form button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.form-success {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.form-success .success-icon {
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+}
+
+.form-success h3 {
+  color: #ffffff;
+  font-size: 1.25rem;
+  margin: 0 0 12px 0;
+}
+
+.form-success p {
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .legal-page {
+    padding: 100px 16px 60px;
+  }
+
+  .legal-title {
+    font-size: 2rem;
+  }
+
+  .legal-content {
+    padding: 24px;
+  }
+
+  .legal-content h2 {
+    font-size: 1.3rem;
+  }
+}
