@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
 import "./ROICalculator.css";
 
 const ROICalculator = () => {
@@ -19,14 +20,30 @@ const ROICalculator = () => {
   return (
     <section className="roi-calculator" id="roi-calculator">
       <div className="roi-container">
-        <div className="roi-header">
+        <motion.div
+          className="roi-header"
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.5 }}
+          transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
+        >
           <h2 className="roi-title">Calculate Your Lost Revenue</h2>
           <p className="roi-subtitle">
             See how much you could be making by automating your DMs
           </p>
-        </div>
+        </motion.div>
 
-        <div className="roi-dashboard">
+        <motion.div
+          className="roi-dashboard"
+          initial={{ opacity: 0, y: 50 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.2 }}
+          transition={{
+            duration: 0.6,
+            delay: 0.15,
+            ease: [0.25, 0.46, 0.45, 0.94],
+          }}
+        >
           <div className="roi-inputs">
             <h3 className="inputs-title">Your Metrics</h3>
 
@@ -91,7 +108,7 @@ const ROICalculator = () => {
               <p className="guarantee-text">30-day money-back guarantee</p>
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
     </section>
   );

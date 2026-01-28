@@ -1,6 +1,6 @@
 import React from "react";
+import { motion } from "framer-motion";
 import "./HowItWorks.css";
-import { Link, Settings, DollarSign } from "lucide-react";
 
 const steps = [
   {
@@ -33,16 +33,30 @@ const HowItWorks = () => {
   return (
     <section className="how-it-works" id="how-it-works">
       <div className="hiw-container">
-        <div className="hiw-header">
+        <motion.div
+          className="hiw-header"
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.5 }}
+          transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
+        >
           <h2 className="hiw-title">How It Works</h2>
           <p className="hiw-subtitle">Get started in minutes, not days</p>
-        </div>
+        </motion.div>
 
         <div className="hiw-steps">
           {steps.map((step, index) => (
-            <div
+            <motion.div
               key={index}
               className={`hiw-step ${index % 2 === 1 ? "reverse" : ""}`}
+              initial={{ opacity: 0, x: index % 2 === 0 ? -40 : 40 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{
+                duration: 0.6,
+                delay: index * 0.1,
+                ease: [0.25, 0.46, 0.45, 0.94],
+              }}
             >
               <div className="step-content">
                 <span className="step-number">{step.number}</span>
@@ -129,7 +143,7 @@ const HowItWorks = () => {
                   </div>
                 )}
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
 

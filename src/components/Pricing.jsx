@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
 import "./Pricing.css";
 import { Check } from "lucide-react";
 
@@ -62,7 +63,13 @@ const Pricing = () => {
   return (
     <section className="pricing" id="pricing">
       <div className="pricing-container">
-        <div className="pricing-header">
+        <motion.div
+          className="pricing-header"
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.5 }}
+          transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
+        >
           <h2 className="pricing-title">Simple, transparent pricing</h2>
           <p className="pricing-subtitle">
             Choose the plan that's right for your business. No hidden fees.
@@ -83,13 +90,21 @@ const Pricing = () => {
               Annual <span className="save-badge">Save 20%</span>
             </span>
           </div>
-        </div>
+        </motion.div>
 
         <div className="pricing-grid">
           {plans.map((plan, index) => (
-            <div
+            <motion.div
               key={index}
               className={`pricing-card ${plan.highlight ? "highlighted" : ""}`}
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{
+                duration: 0.5,
+                delay: index * 0.1,
+                ease: [0.25, 0.46, 0.45, 0.94],
+              }}
             >
               {plan.highlight && (
                 <div className="popular-badge">Most Popular</div>
@@ -134,7 +149,7 @@ const Pricing = () => {
                   ))}
                 </div>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>

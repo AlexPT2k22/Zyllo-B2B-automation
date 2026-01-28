@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
 import "./Hero.css";
 import DarkVeil from "./DarkVeil";
 
@@ -18,39 +19,77 @@ const Hero = () => {
         <DarkVeil />
       </div>
       <div className="hero-content">
-        <h1 className="hero-title">
+        <motion.h1
+          className="hero-title"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
+        >
           Never lose
           <br />a lead anymore
-        </h1>
-        <p className="hero-subtitle">
+        </motion.h1>
+        <motion.p
+          className="hero-subtitle"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{
+            duration: 0.6,
+            delay: 0.15,
+            ease: [0.25, 0.46, 0.45, 0.94],
+          }}
+        >
           Automate responses, qualify leads, and recover shopping carts on
           Instagram and TikTok. The tool that works 24/7 for your clothing,
           nail, resale store and more.
-        </p>
-        <div className="hero-cta">
+        </motion.p>
+        <motion.div
+          className="hero-cta"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{
+            duration: 0.6,
+            delay: 0.3,
+            ease: [0.25, 0.46, 0.45, 0.94],
+          }}
+        >
           <Link to="/waitlist" className="hero-button">
             Join Waitlist
           </Link>
-        </div>
+        </motion.div>
 
-        <div className="hero-visuals">
+        <motion.div
+          className="hero-visuals"
+          initial={{ opacity: 0, y: 50, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{
+            duration: 0.8,
+            delay: 0.4,
+            ease: [0.25, 0.46, 0.45, 0.94],
+          }}
+        >
           <div className="hero-glow"></div>
           <img
             src="/Screenshot_1.png"
             alt="Dashboard Screenshot"
             className="hero-screenshot"
           />
-          <img
+          <motion.img
             src="/shape-icon.png"
             alt="3D Shape"
             className="hero-shape shape-1"
+            initial={{ opacity: 0, x: -30, rotate: -10 }}
+            animate={{ opacity: 1, x: 0, rotate: 0 }}
+            transition={{ duration: 0.8, delay: 0.6 }}
           />
-          <img
+          <motion.img
             src="/shape-icon2.png"
             alt="3D Shape"
             className="hero-shape shape-2"
+            initial={{ opacity: 0, x: 30, rotate: 10 }}
+            animate={{ opacity: 1, x: 0, rotate: 0 }}
+            transition={{ duration: 0.8, delay: 0.7 }}
           />
-        </div>
+        </motion.div>
       </div>
     </section>
   );
