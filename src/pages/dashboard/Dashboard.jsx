@@ -256,7 +256,7 @@ function Dashboard() {
       <div className="charts-grid">
         {/* Interactive Area Chart - Messages Over Time */}
         <Card className="chart-card area-chart-card">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="chart-header-row">
             <div>
               <CardTitle className="chart-title">Messages Overview</CardTitle>
               <CardDescription>
@@ -268,11 +268,11 @@ function Dashboard() {
                     : "7 days"}
               </CardDescription>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="chart-controls">
               <select
                 value={timeRange}
                 onChange={(e) => setTimeRange(e.target.value)}
-                className="h-9 rounded-md border border-white/10 bg-[#0f0e17] px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-purple-500"
+                className="time-range-select"
               >
                 <option value="90d">Last 3 months</option>
                 <option value="30d">Last 30 days</option>

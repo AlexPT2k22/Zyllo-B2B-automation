@@ -16,6 +16,37 @@
   width: 30px;
 }
 
+.chart-header-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 0.5rem;
+}
+
+.chart-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.time-range-select {
+  height: 2.25rem;
+  border-radius: 0.375rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: #0f0e17;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.875rem;
+  color: white;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  outline: none;
+  cursor: pointer;
+}
+
+.time-range-select:focus {
+  box-shadow: 0 0 0 1px #a855f7;
+}
+
 .dashboard-container {
   display: flex;
   background: rgb(10, 10, 15);
