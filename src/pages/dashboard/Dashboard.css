@@ -7,6 +7,15 @@
   padding: 1rem;
 }
 
+.chart-title {
+  margin-top: 0;
+}
+
+.icon {
+  height: 30px;
+  width: 30px;
+}
+
 .dashboard-container {
   display: flex;
   background: rgb(10, 10, 15);

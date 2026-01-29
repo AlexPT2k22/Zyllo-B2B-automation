@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   AreaChart,
   Area,
@@ -32,15 +32,99 @@ import {
   ArrowUpRight,
 } from "lucide-react";
 
-// Mock data for charts
-const messageData = [
-  { name: "Mon", messages: 120, responses: 95 },
-  { name: "Tue", messages: 180, responses: 168 },
-  { name: "Wed", messages: 240, responses: 210 },
-  { name: "Thu", messages: 200, responses: 185 },
-  { name: "Fri", messages: 320, responses: 290 },
-  { name: "Sat", messages: 280, responses: 250 },
-  { name: "Sun", messages: 150, responses: 130 },
+// Mock data for charts (3 months)
+const chartData = [
+  { date: "2024-04-01", messages: 222, responses: 150 },
+  { date: "2024-04-02", messages: 97, responses: 180 },
+  { date: "2024-04-03", messages: 167, responses: 120 },
+  { date: "2024-04-04", messages: 242, responses: 260 },
+  { date: "2024-04-05", messages: 373, responses: 290 },
+  { date: "2024-04-06", messages: 301, responses: 340 },
+  { date: "2024-04-07", messages: 245, responses: 180 },
+  { date: "2024-04-08", messages: 409, responses: 320 },
+  { date: "2024-04-09", messages: 59, responses: 110 },
+  { date: "2024-04-10", messages: 261, responses: 190 },
+  { date: "2024-04-11", messages: 327, responses: 350 },
+  { date: "2024-04-12", messages: 292, responses: 210 },
+  { date: "2024-04-13", messages: 342, responses: 380 },
+  { date: "2024-04-14", messages: 137, responses: 220 },
+  { date: "2024-04-15", messages: 120, responses: 170 },
+  { date: "2024-04-16", messages: 138, responses: 190 },
+  { date: "2024-04-17", messages: 446, responses: 360 },
+  { date: "2024-04-18", messages: 364, responses: 410 },
+  { date: "2024-04-19", messages: 243, responses: 180 },
+  { date: "2024-04-20", messages: 89, responses: 150 },
+  { date: "2024-04-21", messages: 137, responses: 200 },
+  { date: "2024-04-22", messages: 224, responses: 170 },
+  { date: "2024-04-23", messages: 138, responses: 230 },
+  { date: "2024-04-24", messages: 387, responses: 290 },
+  { date: "2024-04-25", messages: 215, responses: 250 },
+  { date: "2024-04-26", messages: 75, responses: 130 },
+  { date: "2024-04-27", messages: 383, responses: 420 },
+  { date: "2024-04-28", messages: 122, responses: 180 },
+  { date: "2024-04-29", messages: 315, responses: 240 },
+  { date: "2024-04-30", messages: 454, responses: 380 },
+  { date: "2024-05-01", messages: 165, responses: 220 },
+  { date: "2024-05-02", messages: 293, responses: 310 },
+  { date: "2024-05-03", messages: 247, responses: 190 },
+  { date: "2024-05-04", messages: 385, responses: 420 },
+  { date: "2024-05-05", messages: 481, responses: 390 },
+  { date: "2024-05-06", messages: 498, responses: 520 },
+  { date: "2024-05-07", messages: 388, responses: 300 },
+  { date: "2024-05-08", messages: 149, responses: 210 },
+  { date: "2024-05-09", messages: 227, responses: 180 },
+  { date: "2024-05-10", messages: 293, responses: 330 },
+  { date: "2024-05-11", messages: 335, responses: 270 },
+  { date: "2024-05-12", messages: 197, responses: 240 },
+  { date: "2024-05-13", messages: 197, responses: 160 },
+  { date: "2024-05-14", messages: 448, responses: 490 },
+  { date: "2024-05-15", messages: 473, responses: 380 },
+  { date: "2024-05-16", messages: 338, responses: 400 },
+  { date: "2024-05-17", messages: 499, responses: 420 },
+  { date: "2024-05-18", messages: 315, responses: 350 },
+  { date: "2024-05-19", messages: 235, responses: 180 },
+  { date: "2024-05-20", messages: 177, responses: 230 },
+  { date: "2024-05-21", messages: 82, responses: 140 },
+  { date: "2024-05-22", messages: 81, responses: 120 },
+  { date: "2024-05-23", messages: 252, responses: 290 },
+  { date: "2024-05-24", messages: 294, responses: 220 },
+  { date: "2024-05-25", messages: 201, responses: 250 },
+  { date: "2024-05-26", messages: 213, responses: 170 },
+  { date: "2024-05-27", messages: 420, responses: 460 },
+  { date: "2024-05-28", messages: 233, responses: 190 },
+  { date: "2024-05-29", messages: 78, responses: 130 },
+  { date: "2024-05-30", messages: 340, responses: 280 },
+  { date: "2024-05-31", messages: 178, responses: 230 },
+  { date: "2024-06-01", messages: 178, responses: 200 },
+  { date: "2024-06-02", messages: 470, responses: 410 },
+  { date: "2024-06-03", messages: 103, responses: 160 },
+  { date: "2024-06-04", messages: 439, responses: 380 },
+  { date: "2024-06-05", messages: 88, responses: 140 },
+  { date: "2024-06-06", messages: 294, responses: 250 },
+  { date: "2024-06-07", messages: 323, responses: 370 },
+  { date: "2024-06-08", messages: 385, responses: 320 },
+  { date: "2024-06-09", messages: 438, responses: 480 },
+  { date: "2024-06-10", messages: 155, responses: 200 },
+  { date: "2024-06-11", messages: 92, responses: 150 },
+  { date: "2024-06-12", messages: 492, responses: 420 },
+  { date: "2024-06-13", messages: 81, responses: 130 },
+  { date: "2024-06-14", messages: 426, responses: 380 },
+  { date: "2024-06-15", messages: 307, responses: 350 },
+  { date: "2024-06-16", messages: 371, responses: 310 },
+  { date: "2024-06-17", messages: 475, responses: 520 },
+  { date: "2024-06-18", messages: 107, responses: 170 },
+  { date: "2024-06-19", messages: 341, responses: 290 },
+  { date: "2024-06-20", messages: 408, responses: 450 },
+  { date: "2024-06-21", messages: 169, responses: 210 },
+  { date: "2024-06-22", messages: 317, responses: 270 },
+  { date: "2024-06-23", messages: 480, responses: 530 },
+  { date: "2024-06-24", messages: 132, responses: 180 },
+  { date: "2024-06-25", messages: 141, responses: 190 },
+  { date: "2024-06-26", messages: 434, responses: 380 },
+  { date: "2024-06-27", messages: 448, responses: 490 },
+  { date: "2024-06-28", messages: 149, responses: 200 },
+  { date: "2024-06-29", messages: 103, responses: 160 },
+  { date: "2024-06-30", messages: 446, responses: 400 },
 ];
 
 const responseTypeData = [
@@ -90,6 +174,7 @@ const stats = [
     value: "2,847",
     change: "+12.5%",
     trend: "up",
+    icon: MessageSquare,
     description: "vs last week",
   },
   {
@@ -119,6 +204,22 @@ const stats = [
 ];
 
 function Dashboard() {
+  const [timeRange, setTimeRange] = useState("90d");
+
+  const filteredData = chartData.filter((item) => {
+    const date = new Date(item.date);
+    const referenceDate = new Date("2024-06-30"); // Matching the mock data end
+    let daysToSubtract = 90;
+    if (timeRange === "30d") {
+      daysToSubtract = 30;
+    } else if (timeRange === "7d") {
+      daysToSubtract = 7;
+    }
+    const startDate = new Date(referenceDate);
+    startDate.setDate(startDate.getDate() - daysToSubtract);
+    return date >= startDate;
+  });
+
   return (
     <div className="dashboard-page">
       {/* Stats Grid */}
@@ -128,6 +229,7 @@ function Dashboard() {
             <CardContent className="p-6">
               <div className="stat-header">
                 <span className="stat-title">{stat.title}</span>
+                {stat.icon && <stat.icon className="icon" />}
               </div>
               <div className="stat-value">
                 {stat.value}
@@ -152,50 +254,89 @@ function Dashboard() {
 
       {/* Charts Row */}
       <div className="charts-grid">
-        {/* Area Chart - Messages Over Time */}
+        {/* Interactive Area Chart - Messages Over Time */}
         <Card className="chart-card area-chart-card">
-          <CardHeader>
-            <CardTitle>Messages Overview</CardTitle>
-            <CardDescription>
-              Your DM activity for the last 7 days
-            </CardDescription>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <div>
+              <CardTitle className="chart-title">Messages Overview</CardTitle>
+              <CardDescription>
+                Showing total messages for the last{" "}
+                {timeRange === "90d"
+                  ? "3 months"
+                  : timeRange === "30d"
+                    ? "30 days"
+                    : "7 days"}
+              </CardDescription>
+            </div>
+            <div className="flex items-center gap-2">
+              <select
+                value={timeRange}
+                onChange={(e) => setTimeRange(e.target.value)}
+                className="h-9 rounded-md border border-white/10 bg-[#0f0e17] px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-purple-500"
+              >
+                <option value="90d">Last 3 months</option>
+                <option value="30d">Last 30 days</option>
+                <option value="7d">Last 7 days</option>
+              </select>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="chart-container">
               <ResponsiveContainer width="100%" height={300}>
-                <AreaChart data={messageData}>
+                <AreaChart
+                  data={filteredData}
+                  margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+                >
                   <defs>
                     <linearGradient
-                      id="colorMessages"
+                      id="fillMessages"
                       x1="0"
                       y1="0"
                       x2="0"
                       y2="1"
                     >
-                      <stop offset="5%" stopColor="#a855f7" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#a855f7" stopOpacity={0} />
+                      <stop offset="5%" stopColor="#a855f7" stopOpacity={0.8} />
+                      <stop
+                        offset="95%"
+                        stopColor="#a855f7"
+                        stopOpacity={0.1}
+                      />
                     </linearGradient>
                     <linearGradient
-                      id="colorResponses"
+                      id="fillResponses"
                       x1="0"
                       y1="0"
                       x2="0"
                       y2="1"
                     >
-                      <stop offset="5%" stopColor="#22c55e" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
+                      <stop offset="5%" stopColor="#22c55e" stopOpacity={0.8} />
+                      <stop
+                        offset="95%"
+                        stopColor="#22c55e"
+                        stopOpacity={0.1}
+                      />
                     </linearGradient>
                   </defs>
                   <CartesianGrid
                     strokeDasharray="3 3"
                     stroke="rgba(255,255,255,0.1)"
+                    vertical={false}
                   />
                   <XAxis
-                    dataKey="name"
+                    dataKey="date"
                     stroke="#94a3b8"
                     fontSize={12}
                     tickLine={false}
                     axisLine={false}
+                    tickMargin={8}
+                    minTickGap={32}
+                    tickFormatter={(value) => {
+                      const date = new Date(value);
+                      return date.toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                      });
+                    }}
                   />
                   <YAxis
                     stroke="#94a3b8"
@@ -211,23 +352,30 @@ function Dashboard() {
                       boxShadow: "0 4px 6px -1px rgba(0,0,0,0.5)",
                       color: "#fff",
                     }}
+                    labelFormatter={(value) => {
+                      return new Date(value).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      });
+                    }}
                   />
                   <Area
-                    type="monotone"
                     dataKey="messages"
+                    type="natural"
+                    fill="url(#fillMessages)"
                     stroke="#a855f7"
                     strokeWidth={2}
-                    fillOpacity={1}
-                    fill="url(#colorMessages)"
+                    stackId="1"
                     name="Messages"
                   />
                   <Area
-                    type="monotone"
                     dataKey="responses"
+                    type="natural"
+                    fill="url(#fillResponses)"
                     stroke="#22c55e"
                     strokeWidth={2}
-                    fillOpacity={1}
-                    fill="url(#colorResponses)"
+                    stackId="1"
                     name="Responses"
                   />
                 </AreaChart>
@@ -236,11 +384,11 @@ function Dashboard() {
             <div className="chart-legend">
               <div className="legend-item">
                 <span className="legend-dot messages"></span>
-                <span>Messages Received</span>
+                <span>Messages</span>
               </div>
               <div className="legend-item">
                 <span className="legend-dot responses"></span>
-                <span>Responses Sent</span>
+                <span>Responses</span>
               </div>
             </div>
           </CardContent>
@@ -249,7 +397,7 @@ function Dashboard() {
         {/* Pie Chart - Response Distribution */}
         <Card className="chart-card pie-chart-card">
           <CardHeader>
-            <CardTitle>Response Types</CardTitle>
+            <CardTitle className="chart-title">Response Types</CardTitle>
             <CardDescription>How your DMs are being handled</CardDescription>
           </CardHeader>
           <CardContent>
@@ -302,7 +450,7 @@ function Dashboard() {
         {/* Bar Chart */}
         <Card className="chart-card bar-chart-card">
           <CardHeader>
-            <CardTitle>Hourly Activity</CardTitle>
+            <CardTitle className="chart-title">Hourly Activity</CardTitle>
             <CardDescription>Peak hours for DM engagement</CardDescription>
           </CardHeader>
           <CardContent>
@@ -363,7 +511,7 @@ function Dashboard() {
         <Card className="recent-messages-card">
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
-              <CardTitle>Recent Messages</CardTitle>
+              <CardTitle className="chart-title">Recent Messages</CardTitle>
               <CardDescription>Latest DMs from your followers</CardDescription>
             </div>
             <a href="/dashboard/inbox" className="view-all-link">
