@@ -1,266 +1,260 @@
-import React, { useState } from "react";
-import { Plus, Edit2, Trash2, Copy, Search, MessageSquare } from "lucide-react";
-import "./QuickReplies.css";
+import React from "react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Plus, Edit2, Trash2, Copy } from "lucide-react";
 
-// Mock data - will come from Supabase
-const mockReplies = [
+const quickReplies = [
   {
     id: 1,
-    title: "Greeting",
-    shortcut: "/hi",
-    message:
-      "Hey there! 👋 Welcome to Porto Fashion! How can I help you today?",
-    useCount: 156,
+    title: "Thank You",
+    message: "Thanks so much for reaching out! We appreciate your support. 💜",
+    category: "General",
+    uses: 234,
   },
   {
     id: 2,
-    title: "Pricing Info",
-    shortcut: "/price",
+    title: "Shipping Info",
     message:
-      "Hi! Most of our dresses range from €40-€50. Which item are you interested in? 😊",
-    useCount: 234,
+      "We ship worldwide! Delivery takes 5-10 business days. Free shipping on orders over $50.",
+    category: "FAQ",
+    uses: 189,
   },
   {
     id: 3,
-    title: "Shipping Info",
-    shortcut: "/ship",
+    title: "Product Link",
     message:
-      "We ship to all of Portugal! 🚚 Standard shipping is €4.99 or free for orders over €50. Delivery takes 2-3 business days.",
-    useCount: 89,
+      "Here's the link to our bestseller: [LINK]. Let me know if you have any questions!",
+    category: "Sales",
+    uses: 156,
   },
   {
     id: 4,
-    title: "Thank You",
-    shortcut: "/thanks",
-    message:
-      "Thank you so much for your order! 🙏 You'll receive a tracking number as soon as it ships. Have a great day!",
-    useCount: 67,
+    title: "Discount Code",
+    message: "Use code WELCOME15 for 15% off your first order! 🎉",
+    category: "Promotions",
+    uses: 312,
   },
   {
     id: 5,
-    title: "Return Policy",
-    shortcut: "/return",
+    title: "Follow Up",
     message:
-      "No problem! You can return any unworn item within 14 days for a full refund. Just send us a DM and we'll arrange the pickup. 📦",
-    useCount: 45,
+      "Just checking in! Did you have any other questions about our products?",
+    category: "General",
+    uses: 98,
+  },
+  {
+    id: 6,
+    title: "Returns Policy",
+    message:
+      "We offer 30-day free returns on all orders. Just reach out and we'll help you!",
+    category: "FAQ",
+    uses: 145,
   },
 ];
 
-const QuickReplies = () => {
-  const [replies, setReplies] = useState(mockReplies);
-  const [showModal, setShowModal] = useState(false);
-  const [editingReply, setEditingReply] = useState(null);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [formData, setFormData] = useState({
-    title: "",
-    shortcut: "",
-    message: "",
-  });
+const categories = ["All", "General", "FAQ", "Sales", "Promotions"];
 
-  const filteredReplies = replies.filter(
-    (reply) =>
-      reply.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      reply.shortcut.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      reply.message.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
+function QuickReplies() {
+  const [activeCategory, setActiveCategory] = React.useState("All");
 
-  const handleOpenModal = (reply = null) => {
-    if (reply) {
-      setEditingReply(reply);
-      setFormData({
-        title: reply.title,
-        shortcut: reply.shortcut,
-        message: reply.message,
-      });
-    } else {
-      setEditingReply(null);
-      setFormData({ title: "", shortcut: "", message: "" });
-    }
-    setShowModal(true);
-  };
-
-  const handleSave = () => {
-    if (!formData.title || !formData.message) return;
-
-    if (editingReply) {
-      setReplies(
-        replies.map((r) =>
-          r.id === editingReply.id ? { ...r, ...formData } : r,
-        ),
-      );
-    } else {
-      setReplies([
-        ...replies,
-        {
-          id: Date.now(),
-          ...formData,
-          useCount: 0,
-        },
-      ]);
-    }
-
-    setShowModal(false);
-    setFormData({ title: "", shortcut: "", message: "" });
-    setEditingReply(null);
-  };
-
-  const handleDelete = (id) => {
-    setReplies(replies.filter((r) => r.id !== id));
-  };
-
-  const handleCopy = (message) => {
-    navigator.clipboard.writeText(message);
-    // Could add a toast notification here
-  };
+  const filteredReplies =
+    activeCategory === "All"
+      ? quickReplies
+      : quickReplies.filter((r) => r.category === activeCategory);
 
   return (
     <div className="quick-replies-page">
-      <div className="qr-header">
+      {/* Header */}
+      <div className="page-header">
         <div>
-          <h2>Quick Replies</h2>
-          <p className="subtitle">
-            Create shortcuts for frequently used responses
+          <h2 className="page-title">Quick Replies</h2>
+          <p className="page-subtitle">
+            Create reusable message templates for faster responses
           </p>
         </div>
-        <button className="create-btn" onClick={() => handleOpenModal()}>
-          <Plus size={18} />
-          New Reply
-        </button>
+        <Button>
+          <Plus className="w-4 h-4" />
+          New Template
+        </Button>
       </div>
 
-      {/* Search */}
-      <div className="qr-search">
-        <Search size={18} />
-        <input
-          type="text"
-          placeholder="Search replies..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
-      </div>
-
-      {/* Stats */}
-      <div className="qr-stats">
-        <div className="stat">
-          <span className="stat-value">{replies.length}</span>
-          <span className="stat-label">Total Replies</span>
-        </div>
-        <div className="stat">
-          <span className="stat-value">
-            {replies.reduce((sum, r) => sum + r.useCount, 0)}
-          </span>
-          <span className="stat-label">Times Used</span>
-        </div>
-      </div>
-
-      {/* Replies Grid */}
-      <div className="replies-grid">
-        {filteredReplies.map((reply) => (
-          <div key={reply.id} className="reply-card">
-            <div className="reply-header">
-              <div className="reply-icon">
-                <MessageSquare size={18} />
-              </div>
-              <div className="reply-title-section">
-                <h4>{reply.title}</h4>
-                <span className="shortcut">{reply.shortcut}</span>
-              </div>
-              <div className="reply-actions">
-                <button
-                  className="action-btn"
-                  onClick={() => handleCopy(reply.message)}
-                  title="Copy"
-                >
-                  <Copy size={14} />
-                </button>
-                <button
-                  className="action-btn"
-                  onClick={() => handleOpenModal(reply)}
-                  title="Edit"
-                >
-                  <Edit2 size={14} />
-                </button>
-                <button
-                  className="action-btn delete"
-                  onClick={() => handleDelete(reply.id)}
-                  title="Delete"
-                >
-                  <Trash2 size={14} />
-                </button>
-              </div>
-            </div>
-            <p className="reply-message">{reply.message}</p>
-            <div className="reply-footer">
-              <span className="use-count">Used {reply.useCount} times</span>
-            </div>
-          </div>
+      {/* Categories */}
+      <div className="categories-bar">
+        {categories.map((cat) => (
+          <button
+            key={cat}
+            className={`category-btn ${activeCategory === cat ? "active" : ""}`}
+            onClick={() => setActiveCategory(cat)}
+          >
+            {cat}
+          </button>
         ))}
       </div>
 
-      {/* Add/Edit Modal */}
-      {showModal && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <div className="modal-header">
-              <h3>{editingReply ? "Edit Reply" : "New Quick Reply"}</h3>
-              <button className="close-btn" onClick={() => setShowModal(false)}>
-                ×
-              </button>
-            </div>
-            <div className="modal-content">
-              <div className="form-group">
-                <label>Title</label>
-                <input
-                  type="text"
-                  placeholder="e.g., Greeting"
-                  value={formData.title}
-                  onChange={(e) =>
-                    setFormData({ ...formData, title: e.target.value })
-                  }
-                />
+      {/* Templates Grid */}
+      <div className="templates-grid">
+        {filteredReplies.map((reply) => (
+          <Card key={reply.id} className="template-card">
+            <CardHeader className="template-header">
+              <div className="template-title-row">
+                <CardTitle className="template-title">{reply.title}</CardTitle>
+                <Badge variant="outline">{reply.category}</Badge>
               </div>
-              <div className="form-group">
-                <label>Shortcut (optional)</label>
-                <input
-                  type="text"
-                  placeholder="e.g., /hi"
-                  value={formData.shortcut}
-                  onChange={(e) =>
-                    setFormData({ ...formData, shortcut: e.target.value })
-                  }
-                />
-                <span className="hint">
-                  Type this in the chat to quickly insert the reply
-                </span>
+              <CardDescription className="template-uses">
+                Used {reply.uses} times
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="template-message">{reply.message}</p>
+              <div className="template-actions">
+                <Button variant="ghost" size="sm" className="action-btn">
+                  <Copy className="w-4 h-4" />
+                  Copy
+                </Button>
+                <Button variant="ghost" size="sm" className="action-btn">
+                  <Edit2 className="w-4 h-4" />
+                  Edit
+                </Button>
+                <Button variant="ghost" size="sm" className="action-btn delete">
+                  <Trash2 className="w-4 h-4" />
+                  Delete
+                </Button>
               </div>
-              <div className="form-group">
-                <label>Message</label>
-                <textarea
-                  placeholder="Your quick reply message..."
-                  value={formData.message}
-                  onChange={(e) =>
-                    setFormData({ ...formData, message: e.target.value })
-                  }
-                  rows={4}
-                />
-              </div>
-            </div>
-            <div className="modal-footer">
-              <button
-                className="cancel-btn"
-                onClick={() => setShowModal(false)}
-              >
-                Cancel
-              </button>
-              <button className="save-btn" onClick={handleSave}>
-                {editingReply ? "Save Changes" : "Create Reply"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <style>{`
+        .quick-replies-page {
+          display: flex;
+          flex-direction: column;
+          gap: 1.5rem;
+        }
+
+        .page-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+        }
+
+        .page-title {
+          font-size: 1.5rem;
+          font-weight: 600;
+          color: #1e293b;
+          margin: 0 0 0.25rem;
+        }
+
+        .page-subtitle {
+          font-size: 0.875rem;
+          color: #64748b;
+          margin: 0;
+        }
+
+        .categories-bar {
+          display: flex;
+          gap: 0.5rem;
+          padding-bottom: 1rem;
+          border-bottom: 1px solid #e2e8f0;
+        }
+
+        .category-btn {
+          padding: 0.5rem 1rem;
+          border-radius: 9999px;
+          font-size: 0.875rem;
+          font-weight: 500;
+          background: none;
+          border: 1px solid #e2e8f0;
+          color: #64748b;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .category-btn:hover {
+          background-color: #f8fafc;
+          color: #1e293b;
+        }
+
+        .category-btn.active {
+          background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);
+          border-color: transparent;
+          color: white;
+        }
+
+        .templates-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 1rem;
+        }
+
+        .template-card {
+          transition: box-shadow 0.2s;
+        }
+
+        .template-card:hover {
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .template-header {
+          padding-bottom: 0.5rem;
+        }
+
+        .template-title-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+        }
+
+        .template-title {
+          font-size: 1rem;
+        }
+
+        .template-uses {
+          margin-top: 0.25rem;
+        }
+
+        .template-message {
+          font-size: 0.875rem;
+          color: #475569;
+          line-height: 1.6;
+          margin: 0 0 1rem;
+          padding: 0.75rem;
+          background-color: #f8fafc;
+          border-radius: 0.5rem;
+          border-left: 3px solid #a855f7;
+        }
+
+        .template-actions {
+          display: flex;
+          gap: 0.25rem;
+        }
+
+        .action-btn {
+          display: flex;
+          align-items: center;
+          gap: 0.375rem;
+          font-size: 0.75rem;
+        }
+
+        .action-btn.delete:hover {
+          color: #ef4444;
+        }
+
+        @media (max-width: 1024px) {
+          .templates-grid {
+            grid-template-columns: 1fr;
+          }
+        }
+      `}</style>
     </div>
   );
-};
+}
 
 export default QuickReplies;

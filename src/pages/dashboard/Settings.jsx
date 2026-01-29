@@ -1,326 +1,417 @@
-import React, { useState } from "react";
+import React from "react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   User,
-  Instagram,
   Bell,
-  Shield,
+  Lock,
   CreditCard,
-  LogOut,
-  RefreshCw,
-  AlertTriangle,
-  CheckCircle,
-  XCircle,
-  Clock,
+  Link2,
+  HelpCircle,
   ChevronRight,
-  ExternalLink,
-  Trash2,
+  Instagram,
+  Check,
 } from "lucide-react";
-import "./Settings.css";
 
-// Mock data
-const mockAccount = {
-  name: "Porto Fashion",
-  handle: "@portofashionshop",
-  instagramId: "17841400123456789",
-  connected: true,
-  tokenExpiry: "2026-03-15",
-  tokenStatus: "valid", // 'valid', 'expiring_soon', 'expired'
-};
-
-const mockLogs = [
+const settingsSections = [
   {
-    id: 1,
-    type: "success",
-    action: "Auto-reply sent",
-    details: "Responded to @mariasantos",
-    time: "2 mins ago",
+    id: "profile",
+    icon: User,
+    title: "Profile Settings",
+    description: "Manage your account information",
   },
   {
-    id: 2,
-    type: "success",
-    action: "Message received",
-    details: "New DM from @pedrolima",
-    time: "15 mins ago",
+    id: "notifications",
+    icon: Bell,
+    title: "Notifications",
+    description: "Configure notification preferences",
   },
   {
-    id: 3,
-    type: "warning",
-    action: "Token refresh",
-    details: "Access token will expire in 7 days",
-    time: "1 hour ago",
+    id: "security",
+    icon: Lock,
+    title: "Security",
+    description: "Password and authentication settings",
   },
   {
-    id: 4,
-    type: "success",
-    action: "Rule triggered",
-    details: "FAQ - Pricing rule matched",
-    time: "2 hours ago",
+    id: "billing",
+    icon: CreditCard,
+    title: "Billing",
+    description: "Manage your subscription and payments",
   },
   {
-    id: 5,
-    type: "error",
-    action: "API Error",
-    details: "Rate limit exceeded, retrying...",
-    time: "3 hours ago",
+    id: "integrations",
+    icon: Link2,
+    title: "Integrations",
+    description: "Connect third-party services",
   },
   {
-    id: 6,
-    type: "success",
-    action: "Webhook received",
-    details: "Instagram webhook event processed",
-    time: "4 hours ago",
+    id: "help",
+    icon: HelpCircle,
+    title: "Help & Support",
+    description: "Get help and contact support",
   },
 ];
 
-const Settings = () => {
-  const [activeTab, setActiveTab] = useState("account");
-
-  const getTokenStatusColor = (status) => {
-    switch (status) {
-      case "valid":
-        return "success";
-      case "expiring_soon":
-        return "warning";
-      case "expired":
-        return "error";
-      default:
-        return "neutral";
-    }
-  };
-
-  const getLogIcon = (type) => {
-    switch (type) {
-      case "success":
-        return <CheckCircle size={16} className="log-icon success" />;
-      case "warning":
-        return <AlertTriangle size={16} className="log-icon warning" />;
-      case "error":
-        return <XCircle size={16} className="log-icon error" />;
-      default:
-        return <Clock size={16} className="log-icon" />;
-    }
-  };
-
+function Settings() {
   return (
     <div className="settings-page">
-      <h2>Settings</h2>
+      {/* Header */}
+      <div className="page-header">
+        <h2 className="page-title">Settings</h2>
+        <p className="page-subtitle">Manage your account and preferences</p>
+      </div>
 
       <div className="settings-layout">
-        {/* Sidebar Tabs */}
-        <div className="settings-tabs">
-          <button
-            className={`settings-tab ${activeTab === "account" ? "active" : ""}`}
-            onClick={() => setActiveTab("account")}
-          >
-            <Instagram size={18} />
-            <span>Connected Accounts</span>
-          </button>
-          <button
-            className={`settings-tab ${activeTab === "logs" ? "active" : ""}`}
-            onClick={() => setActiveTab("logs")}
-          >
-            <Clock size={18} />
-            <span>Activity Logs</span>
-          </button>
-          <button
-            className={`settings-tab ${activeTab === "notifications" ? "active" : ""}`}
-            onClick={() => setActiveTab("notifications")}
-          >
-            <Bell size={18} />
-            <span>Notifications</span>
-          </button>
-          <button
-            className={`settings-tab ${activeTab === "billing" ? "active" : ""}`}
-            onClick={() => setActiveTab("billing")}
-          >
-            <CreditCard size={18} />
-            <span>Billing</span>
-          </button>
-        </div>
+        {/* Profile Card */}
+        <Card className="profile-card">
+          <CardContent className="profile-content">
+            <div className="profile-info">
+              <Avatar className="profile-avatar">
+                <AvatarImage src="" alt="John Doe" />
+                <AvatarFallback className="profile-fallback">JD</AvatarFallback>
+              </Avatar>
+              <div className="profile-details">
+                <h3 className="profile-name">John Doe</h3>
+                <p className="profile-email">john@example.com</p>
+                <Badge variant="default" className="plan-badge">
+                  Pro Plan
+                </Badge>
+              </div>
+            </div>
+            <Button variant="outline">Edit Profile</Button>
+          </CardContent>
+        </Card>
 
-        {/* Content Area */}
-        <div className="settings-content">
-          {/* Connected Accounts Tab */}
-          {activeTab === "account" && (
-            <div className="settings-section">
-              <h3>Connected Instagram Accounts</h3>
-              <p className="section-description">
-                Manage your connected Instagram business accounts
-              </p>
-
-              {/* Connected Account Card */}
-              <div className="account-card-large">
-                <div className="account-main">
-                  <div className="account-avatar-large">
-                    {mockAccount.name
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")}
-                  </div>
-                  <div className="account-details">
-                    <h4>{mockAccount.name}</h4>
-                    <p className="account-handle-large">{mockAccount.handle}</p>
-                    <p className="account-id">ID: {mockAccount.instagramId}</p>
-                  </div>
-                  <div
-                    className={`connection-status ${mockAccount.connected ? "connected" : ""}`}
-                  >
-                    <CheckCircle size={16} />
-                    <span>Connected</span>
-                  </div>
+        {/* Connected Account */}
+        <Card className="connected-card">
+          <CardHeader>
+            <CardTitle className="connected-title">Connected Account</CardTitle>
+            <CardDescription>Your linked Instagram account</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="connected-account">
+              <div className="account-info">
+                <div className="instagram-icon">
+                  <Instagram className="w-5 h-5 text-white" />
                 </div>
-
-                <div className="account-token-info">
-                  <div className="token-row">
-                    <span className="token-label">Token Status</span>
-                    <span
-                      className={`token-status ${getTokenStatusColor(mockAccount.tokenStatus)}`}
-                    >
-                      {mockAccount.tokenStatus === "valid" && "Valid"}
-                      {mockAccount.tokenStatus === "expiring_soon" &&
-                        "Expiring Soon"}
-                      {mockAccount.tokenStatus === "expired" && "Expired"}
-                    </span>
-                  </div>
-                  <div className="token-row">
-                    <span className="token-label">Expires</span>
-                    <span className="token-value">
-                      {mockAccount.tokenExpiry}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="account-actions">
-                  <button className="action-btn-secondary">
-                    <RefreshCw size={16} />
-                    Refresh Token
-                  </button>
-                  <button className="action-btn-danger">
-                    <Trash2 size={16} />
-                    Disconnect
-                  </button>
+                <div>
+                  <p className="account-username">@johndoe_official</p>
+                  <p className="account-followers">12.5k followers</p>
                 </div>
               </div>
+              <div className="account-status">
+                <Check className="w-4 h-4 text-green-500" />
+                <span>Connected</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-              {/* Add Account Button */}
-              <button className="add-account-btn-large">
-                <Instagram size={20} />
-                <span>Connect Another Account</span>
+        {/* Settings Menu */}
+        <Card className="settings-menu-card">
+          <CardContent className="menu-content">
+            {settingsSections.map((section) => (
+              <button key={section.id} className="settings-menu-item">
+                <div className="menu-item-left">
+                  <div className="menu-icon-wrapper">
+                    <section.icon className="menu-icon" />
+                  </div>
+                  <div className="menu-item-text">
+                    <span className="menu-item-title">{section.title}</span>
+                    <span className="menu-item-desc">
+                      {section.description}
+                    </span>
+                  </div>
+                </div>
+                <ChevronRight className="menu-chevron" />
               </button>
-            </div>
-          )}
+            ))}
+          </CardContent>
+        </Card>
 
-          {/* Activity Logs Tab */}
-          {activeTab === "logs" && (
-            <div className="settings-section">
-              <h3>Activity Logs</h3>
-              <p className="section-description">
-                View recent activity and system events
-              </p>
-
-              <div className="logs-list">
-                {mockLogs.map((log) => (
-                  <div key={log.id} className={`log-item ${log.type}`}>
-                    {getLogIcon(log.type)}
-                    <div className="log-content">
-                      <span className="log-action">{log.action}</span>
-                      <span className="log-details">{log.details}</span>
-                    </div>
-                    <span className="log-time">{log.time}</span>
-                  </div>
-                ))}
+        {/* Danger Zone */}
+        <Card className="danger-card">
+          <CardHeader>
+            <CardTitle className="danger-title">Danger Zone</CardTitle>
+            <CardDescription>
+              Irreversible actions for your account
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="danger-actions">
+              <div className="danger-item">
+                <div>
+                  <p className="danger-action-title">Disconnect Instagram</p>
+                  <p className="danger-action-desc">
+                    Remove your Instagram connection
+                  </p>
+                </div>
+                <Button variant="outline" className="danger-btn">
+                  Disconnect
+                </Button>
               </div>
-
-              <button className="load-more-btn">Load More</button>
-            </div>
-          )}
-
-          {/* Notifications Tab */}
-          {activeTab === "notifications" && (
-            <div className="settings-section">
-              <h3>Notification Preferences</h3>
-              <p className="section-description">
-                Configure how you want to be notified
-              </p>
-
-              <div className="notification-options">
-                <div className="notification-item">
-                  <div className="notification-info">
-                    <h4>Email Notifications</h4>
-                    <p>
-                      Receive daily summaries and important alerts via email
-                    </p>
-                  </div>
-                  <label className="toggle">
-                    <input type="checkbox" defaultChecked />
-                    <span className="toggle-slider"></span>
-                  </label>
+              <div className="danger-item">
+                <div>
+                  <p className="danger-action-title">Delete Account</p>
+                  <p className="danger-action-desc">
+                    Permanently delete your account and data
+                  </p>
                 </div>
-
-                <div className="notification-item">
-                  <div className="notification-info">
-                    <h4>Token Expiry Warnings</h4>
-                    <p>Get notified 7 days before your token expires</p>
-                  </div>
-                  <label className="toggle">
-                    <input type="checkbox" defaultChecked />
-                    <span className="toggle-slider"></span>
-                  </label>
-                </div>
-
-                <div className="notification-item">
-                  <div className="notification-info">
-                    <h4>New Message Alerts</h4>
-                    <p>Real-time notifications for new Instagram DMs</p>
-                  </div>
-                  <label className="toggle">
-                    <input type="checkbox" />
-                    <span className="toggle-slider"></span>
-                  </label>
-                </div>
+                <Button variant="destructive">Delete Account</Button>
               </div>
             </div>
-          )}
-
-          {/* Billing Tab */}
-          {activeTab === "billing" && (
-            <div className="settings-section">
-              <h3>Billing & Subscription</h3>
-              <p className="section-description">
-                Manage your subscription and payment details
-              </p>
-
-              <div className="plan-card">
-                <div className="plan-badge">Current Plan</div>
-                <h4>Pro Plan</h4>
-                <p className="plan-price">
-                  €29<span>/month</span>
-                </p>
-                <ul className="plan-features">
-                  <li>
-                    <CheckCircle size={14} /> Unlimited automations
-                  </li>
-                  <li>
-                    <CheckCircle size={14} /> Up to 3 Instagram accounts
-                  </li>
-                  <li>
-                    <CheckCircle size={14} /> Analytics & insights
-                  </li>
-                  <li>
-                    <CheckCircle size={14} /> Priority support
-                  </li>
-                </ul>
-                <button className="manage-plan-btn">
-                  Manage Subscription
-                  <ExternalLink size={14} />
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
+          </CardContent>
+        </Card>
       </div>
+
+      <style>{`
+        .settings-page {
+          display: flex;
+          flex-direction: column;
+          gap: 1.5rem;
+          max-width: 800px;
+        }
+
+        .page-header {
+          margin-bottom: 0.5rem;
+        }
+
+        .page-title {
+          font-size: 1.5rem;
+          font-weight: 600;
+          color: #1e293b;
+          margin: 0 0 0.25rem;
+        }
+
+        .page-subtitle {
+          font-size: 0.875rem;
+          color: #64748b;
+          margin: 0;
+        }
+
+        .settings-layout {
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
+        }
+
+        .profile-card .profile-content {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 1.5rem !important;
+        }
+
+        .profile-info {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+        }
+
+        .profile-avatar {
+          width: 64px;
+          height: 64px;
+        }
+
+        .profile-fallback {
+          font-size: 1.25rem;
+        }
+
+        .profile-details {
+          display: flex;
+          flex-direction: column;
+          gap: 0.125rem;
+        }
+
+        .profile-name {
+          font-size: 1.125rem;
+          font-weight: 600;
+          color: #1e293b;
+          margin: 0;
+        }
+
+        .profile-email {
+          font-size: 0.875rem;
+          color: #64748b;
+          margin: 0 0 0.375rem;
+        }
+
+        .plan-badge {
+          width: fit-content;
+        }
+
+        .connected-title {
+          font-size: 1rem;
+        }
+
+        .connected-account {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 1rem;
+          background-color: #f8fafc;
+          border-radius: 0.5rem;
+        }
+
+        .account-info {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+        }
+
+        .instagram-icon {
+          width: 40px;
+          height: 40px;
+          background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+          border-radius: 10px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .account-username {
+          font-size: 0.875rem;
+          font-weight: 600;
+          color: #1e293b;
+          margin: 0;
+        }
+
+        .account-followers {
+          font-size: 0.75rem;
+          color: #64748b;
+          margin: 0;
+        }
+
+        .account-status {
+          display: flex;
+          align-items: center;
+          gap: 0.375rem;
+          font-size: 0.75rem;
+          font-weight: 500;
+          color: #22c55e;
+        }
+
+        .menu-content {
+          padding: 0.5rem !important;
+        }
+
+        .settings-menu-item {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          width: 100%;
+          padding: 1rem;
+          background: none;
+          border: none;
+          border-radius: 0.5rem;
+          cursor: pointer;
+          transition: background-color 0.2s;
+        }
+
+        .settings-menu-item:hover {
+          background-color: #f8fafc;
+        }
+
+        .menu-item-left {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+        }
+
+        .menu-icon-wrapper {
+          width: 40px;
+          height: 40px;
+          background-color: #f1f5f9;
+          border-radius: 10px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .menu-icon {
+          width: 20px;
+          height: 20px;
+          color: #64748b;
+        }
+
+        .menu-item-text {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 0.125rem;
+        }
+
+        .menu-item-title {
+          font-size: 0.875rem;
+          font-weight: 500;
+          color: #1e293b;
+        }
+
+        .menu-item-desc {
+          font-size: 0.75rem;
+          color: #64748b;
+        }
+
+        .menu-chevron {
+          width: 20px;
+          height: 20px;
+          color: #94a3b8;
+        }
+
+        .danger-title {
+          font-size: 1rem;
+          color: #ef4444;
+        }
+
+        .danger-actions {
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
+        }
+
+        .danger-item {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 1rem;
+          background-color: #fef2f2;
+          border-radius: 0.5rem;
+          border: 1px solid #fecaca;
+        }
+
+        .danger-action-title {
+          font-size: 0.875rem;
+          font-weight: 500;
+          color: #1e293b;
+          margin: 0;
+        }
+
+        .danger-action-desc {
+          font-size: 0.75rem;
+          color: #64748b;
+          margin: 0;
+        }
+
+        .danger-btn {
+          border-color: #ef4444;
+          color: #ef4444;
+        }
+
+        .danger-btn:hover {
+          background-color: #ef4444;
+          color: white;
+        }
+      `}</style>
     </div>
   );
-};
+}
 
 export default Settings;

@@ -4,3 +4,18 @@
   color: white;
   overflow-x: hidden;
 }
+
+/* Dashboard override - full page with light theme */
+.app-container:has(.dashboard-container) {
+  background-color: #f8fafc;
+  color: #1e293b;
+}
+
+.app-container:has(.dashboard-container)::before,
+.app-container:has(.dashboard-container)::after {
+  display: none;
+}
+
+.app-container:has(.dashboard-container) main {
+  height: 100vh;
+}

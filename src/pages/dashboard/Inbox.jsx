@@ -1,274 +1,452 @@
 import React, { useState } from "react";
-import {
-  Search,
-  Send,
-  Paperclip,
-  Smile,
-  MoreHorizontal,
-  Phone,
-  Video,
-} from "lucide-react";
-import "./Inbox.css";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Search, Filter, MoreVertical, Send } from "lucide-react";
 
-// Mock data - will come from Supabase
-const mockConversations = [
+const conversations = [
   {
     id: 1,
-    sender: "Maria Santos",
-    handle: "@mariasantos",
-    preview: "How much is it?",
-    time: "8 mins ago",
-    initials: "MS",
+    user: "Sarah Johnson",
+    avatar: "",
+    lastMessage: "Hi! I'm interested in your product pricing",
+    time: "2 min ago",
     unread: true,
-    status: "online",
-    tags: ["Hot Lead"],
+    status: "pending",
   },
   {
     id: 2,
-    sender: "Pedro Lima",
-    handle: "@pedrolima",
-    preview: "Olá! Tem envio para Lisboa?",
+    user: "Mike Chen",
+    avatar: "",
+    lastMessage: "Thanks for the quick response! 🙌",
+    time: "15 min ago",
+    unread: false,
+    status: "replied",
+  },
+  {
+    id: 3,
+    user: "Emma Davis",
+    avatar: "",
+    lastMessage: "Do you ship internationally?",
     time: "1 hour ago",
-    initials: "PL",
+    unread: false,
+    status: "auto-replied",
+  },
+  {
+    id: 4,
+    user: "Alex Turner",
+    avatar: "",
+    lastMessage: "When will the new collection drop?",
+    time: "2 hours ago",
+    unread: false,
+    status: "replied",
+  },
+  {
+    id: 5,
+    user: "Lisa Wang",
+    avatar: "",
+    lastMessage: "Can I get a discount code?",
+    time: "3 hours ago",
     unread: true,
-    status: "offline",
-    tags: ["VIP"],
+    status: "pending",
   },
   {
-    id: 3,
-    sender: "Ana Beauty",
-    handle: "@anabeauty",
-    preview: "Olá! Tem envio para Lisboa?",
-    time: "1 hour ago",
-    initials: "AB",
+    id: 6,
+    user: "James Miller",
+    avatar: "",
+    lastMessage: "Your product changed my life!",
+    time: "5 hours ago",
     unread: false,
-    status: "online",
-    tags: [],
-  },
-  {
-    id: 4,
-    sender: "Joana e Sofia",
-    handle: "@joanaesofia",
-    preview: "Hello! Can I return items if they don't fit?",
-    time: "4 hours ago",
-    initials: "JS",
-    unread: false,
-    status: "offline",
-    tags: ["New"],
-  },
-  {
-    id: 5,
-    sender: "Daniel Andrade",
-    handle: "@danielandrade",
-    preview: "Obrigado, chegou tudo ótimo!",
-    time: "1 day",
-    initials: "DA",
-    unread: false,
-    status: "offline",
-    tags: [],
+    status: "replied",
   },
 ];
 
-const mockMessages = [
-  {
-    id: 1,
-    sender: "them",
-    text: "Hey sarah, jones, wu can see the first pace for the chat? 😊",
-    time: "10:23 AM",
-  },
-  {
-    id: 2,
-    sender: "them",
-    text: "Hey, would you want to evenathine and bolly for my diam is meicive herin?",
-    time: "10:24 AM",
-  },
-  {
-    id: 3,
-    sender: "me",
-    text: "Thank you some ris omoe for Instagram before and: aeoar nganw?",
-    time: "10:25 AM",
-  },
-  {
-    id: 4,
-    sender: "them",
-    text: "How do you everast on your schedue call on marmrying this weekend?",
-    time: "10:26 AM",
-  },
-  {
-    id: 5,
-    sender: "me",
-    text: "Mayin tlis you grale 😊",
-    time: "10:27 AM",
-    status: "delivered",
-  },
-];
-
-const quickReplies = ["Thank you!", "Schedule Call", "Send Discount"];
-
-const Inbox = () => {
+function Inbox() {
   const [selectedConversation, setSelectedConversation] = useState(
-    mockConversations[0],
+    conversations[0],
   );
-  const [messageInput, setMessageInput] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
-
-  const handleSendMessage = () => {
-    if (!messageInput.trim()) return;
-    console.log("Sending message:", messageInput);
-    setMessageInput("");
-  };
+  const [message, setMessage] = useState("");
 
   return (
-    <div className="inbox-container">
-      {/* Conversations List */}
-      <div className="conversations-panel">
-        <div className="conversations-header">
-          <div className="conversations-tabs">
-            <button className="conv-tab active">All Messages</button>
-            <button className="conv-tab">Unread</button>
+    <div className="inbox-page">
+      {/* Conversation List */}
+      <Card className="conversation-list-card">
+        <CardHeader className="conversation-list-header">
+          <CardTitle>Inbox</CardTitle>
+          <div className="inbox-actions">
+            <Button variant="ghost" size="icon">
+              <Filter className="w-4 h-4" />
+            </Button>
           </div>
+        </CardHeader>
+        <div className="search-wrapper">
+          <Search className="search-icon" />
+          <input
+            type="text"
+            placeholder="Search conversations..."
+            className="search-input"
+          />
         </div>
-
-        <div className="conversations-list">
-          {mockConversations.map((conv) => (
+        <div className="conversation-list">
+          {conversations.map((convo) => (
             <div
-              key={conv.id}
-              className={`conversation-item ${selectedConversation?.id === conv.id ? "active" : ""} ${conv.unread ? "unread" : ""}`}
-              onClick={() => setSelectedConversation(conv)}
+              key={convo.id}
+              className={`conversation-item ${selectedConversation?.id === convo.id ? "active" : ""}`}
+              onClick={() => setSelectedConversation(convo)}
             >
-              <div className="conv-avatar-wrapper">
-                <div className="conv-avatar">{conv.initials}</div>
-                {conv.status === "online" && (
-                  <span className="status-dot online"></span>
-                )}
+              <div className="conversation-avatar-wrapper">
+                <Avatar className="h-12 w-12">
+                  <AvatarImage src={convo.avatar} alt={convo.user} />
+                  <AvatarFallback>
+                    {convo.user
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")}
+                  </AvatarFallback>
+                </Avatar>
+                {convo.unread && <span className="unread-indicator"></span>}
               </div>
-              <div className="conv-content">
-                <div className="conv-header">
-                  <span className="conv-sender">{conv.sender}</span>
-                  <span className="conv-time">{conv.time}</span>
+              <div className="conversation-info">
+                <div className="conversation-header">
+                  <span
+                    className={`conversation-name ${convo.unread ? "unread" : ""}`}
+                  >
+                    {convo.user}
+                  </span>
+                  <span className="conversation-time">{convo.time}</span>
                 </div>
-                <div className="conv-preview">{conv.preview}</div>
-                {conv.tags.length > 0 && (
-                  <div className="conv-tags">
-                    {conv.tags.map((tag, i) => (
-                      <span
-                        key={i}
-                        className={`conv-tag ${tag.toLowerCase().replace(" ", "-")}`}
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                )}
+                <p
+                  className={`conversation-preview ${convo.unread ? "unread" : ""}`}
+                >
+                  {convo.lastMessage}
+                </p>
               </div>
-              {conv.unread && <span className="unread-indicator"></span>}
             </div>
           ))}
         </div>
-      </div>
+      </Card>
 
-      {/* Chat Panel */}
-      <div className="chat-panel">
+      {/* Chat View */}
+      <Card className="chat-view-card">
         {selectedConversation ? (
           <>
-            {/* Chat Header */}
-            <div className="chat-header">
+            <CardHeader className="chat-header">
               <div className="chat-user-info">
-                <div className="chat-avatar">
-                  {selectedConversation.initials}
-                </div>
+                <Avatar className="h-10 w-10">
+                  <AvatarImage
+                    src={selectedConversation.avatar}
+                    alt={selectedConversation.user}
+                  />
+                  <AvatarFallback>
+                    {selectedConversation.user
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")}
+                  </AvatarFallback>
+                </Avatar>
                 <div>
-                  <div className="chat-user-name">
-                    {selectedConversation.sender}
-                    {selectedConversation.status === "online" && (
-                      <span className="online-badge">Online</span>
-                    )}
-                  </div>
-                  <div className="chat-user-handle">
-                    {selectedConversation.handle}
-                  </div>
+                  <h3 className="chat-user-name">
+                    {selectedConversation.user}
+                  </h3>
+                  <Badge
+                    variant={
+                      selectedConversation.status === "pending"
+                        ? "warning"
+                        : selectedConversation.status === "auto-replied"
+                          ? "default"
+                          : "success"
+                    }
+                  >
+                    {selectedConversation.status}
+                  </Badge>
                 </div>
               </div>
-              <div className="chat-header-tags">
-                {selectedConversation.tags.map((tag, i) => (
-                  <span key={i} className="header-tag">
-                    {tag}
-                  </span>
-                ))}
+              <Button variant="ghost" size="icon">
+                <MoreVertical className="w-4 h-4" />
+              </Button>
+            </CardHeader>
+            <CardContent className="chat-messages">
+              <div className="message received">
+                <p>{selectedConversation.lastMessage}</p>
+                <span className="message-time">
+                  {selectedConversation.time}
+                </span>
               </div>
-              <div className="chat-header-actions">
-                <button className="chat-action-btn">
-                  <Phone size={18} />
-                </button>
-                <button className="chat-action-btn">
-                  <Video size={18} />
-                </button>
-                <button className="chat-action-btn">
-                  <MoreHorizontal size={18} />
-                </button>
-              </div>
-            </div>
-
-            {/* Messages */}
-            <div className="chat-messages">
-              {mockMessages.map((msg) => (
-                <div key={msg.id} className={`chat-message ${msg.sender}`}>
-                  <div className="message-bubble">{msg.text}</div>
-                  <div className="message-meta">
-                    <span className="message-time">{msg.time}</span>
-                    {msg.status && (
-                      <span className="message-status">{msg.status}</span>
-                    )}
-                  </div>
+              {selectedConversation.status !== "pending" && (
+                <div className="message sent">
+                  <p>Thanks for reaching out! We'll get back to you shortly.</p>
+                  <span className="message-time">Just now</span>
                 </div>
-              ))}
-            </div>
-
-            {/* Quick Replies */}
-            <div className="quick-replies-bar">
-              {quickReplies.map((reply, i) => (
-                <button
-                  key={i}
-                  className="quick-reply-btn"
-                  onClick={() => setMessageInput(reply)}
-                >
-                  {reply}
-                </button>
-              ))}
-            </div>
-
-            {/* Input Area */}
-            <div className="chat-input-area">
-              <div className="chat-input-wrapper">
-                <input
-                  type="text"
-                  placeholder="Text a message..."
-                  value={messageInput}
-                  onChange={(e) => setMessageInput(e.target.value)}
-                  onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
-                />
-                <div className="input-actions">
-                  <button className="input-action-btn">
-                    <Smile size={20} />
-                  </button>
-                  <button className="input-action-btn">
-                    <Paperclip size={20} />
-                  </button>
-                  <button className="send-btn" onClick={handleSendMessage}>
-                    <Send size={18} />
-                  </button>
-                </div>
-              </div>
+              )}
+            </CardContent>
+            <div className="chat-input-wrapper">
+              <input
+                type="text"
+                placeholder="Type your message..."
+                className="chat-input"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+              />
+              <Button className="send-button">
+                <Send className="w-4 h-4" />
+                Send
+              </Button>
             </div>
           </>
         ) : (
           <div className="no-conversation">
-            <p>Select a conversation to start messaging</p>
+            <p>Select a conversation to start chatting</p>
           </div>
         )}
-      </div>
+      </Card>
+
+      <style>{`
+        .inbox-page {
+          display: grid;
+          grid-template-columns: 380px 1fr;
+          gap: 1rem;
+          height: calc(100vh - 180px);
+        }
+
+        .conversation-list-card {
+          display: flex;
+          flex-direction: column;
+          overflow: hidden;
+        }
+
+        .conversation-list-header {
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          justify-content: space-between;
+          padding-bottom: 0;
+        }
+
+        .search-wrapper {
+          position: relative;
+          padding: 0 1rem 1rem;
+        }
+
+        .search-icon {
+          position: absolute;
+          left: 1.75rem;
+          top: 50%;
+          transform: translateY(-50%);
+          width: 16px;
+          height: 16px;
+          color: #94a3b8;
+        }
+
+        .search-input {
+          width: 100%;
+          padding: 0.625rem 1rem 0.625rem 2.5rem;
+          border: 1px solid #e2e8f0;
+          border-radius: 0.5rem;
+          font-size: 0.875rem;
+          outline: none;
+          transition: border-color 0.2s;
+        }
+
+        .search-input:focus {
+          border-color: #a855f7;
+        }
+
+        .conversation-list {
+          flex: 1;
+          overflow-y: auto;
+        }
+
+        .conversation-item {
+          display: flex;
+          align-items: flex-start;
+          gap: 0.75rem;
+          padding: 1rem;
+          cursor: pointer;
+          transition: background-color 0.2s;
+          border-bottom: 1px solid #f1f5f9;
+        }
+
+        .conversation-item:hover {
+          background-color: #f8fafc;
+        }
+
+        .conversation-item.active {
+          background-color: #faf5ff;
+          border-left: 3px solid #a855f7;
+        }
+
+        .conversation-avatar-wrapper {
+          position: relative;
+        }
+
+        .unread-indicator {
+          position: absolute;
+          top: 0;
+          right: 0;
+          width: 12px;
+          height: 12px;
+          background-color: #a855f7;
+          border-radius: 50%;
+          border: 2px solid white;
+        }
+
+        .conversation-info {
+          flex: 1;
+          min-width: 0;
+        }
+
+        .conversation-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 0.25rem;
+        }
+
+        .conversation-name {
+          font-size: 0.875rem;
+          color: #1e293b;
+        }
+
+        .conversation-name.unread {
+          font-weight: 600;
+        }
+
+        .conversation-time {
+          font-size: 0.75rem;
+          color: #94a3b8;
+        }
+
+        .conversation-preview {
+          font-size: 0.875rem;
+          color: #64748b;
+          margin: 0;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .conversation-preview.unread {
+          color: #1e293b;
+          font-weight: 500;
+        }
+
+        .chat-view-card {
+          display: flex;
+          flex-direction: column;
+          overflow: hidden;
+        }
+
+        .chat-header {
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          justify-content: space-between;
+          border-bottom: 1px solid #e2e8f0;
+        }
+
+        .chat-user-info {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+        }
+
+        .chat-user-name {
+          font-size: 0.875rem;
+          font-weight: 600;
+          color: #1e293b;
+          margin: 0 0 0.25rem;
+        }
+
+        .chat-messages {
+          flex: 1;
+          overflow-y: auto;
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
+          padding-top: 1.5rem !important;
+        }
+
+        .message {
+          max-width: 70%;
+          padding: 0.75rem 1rem;
+          border-radius: 1rem;
+        }
+
+        .message p {
+          margin: 0 0 0.25rem;
+          font-size: 0.875rem;
+        }
+
+        .message-time {
+          font-size: 0.75rem;
+          color: #94a3b8;
+        }
+
+        .message.received {
+          background-color: #f1f5f9;
+          border-bottom-left-radius: 0.25rem;
+          align-self: flex-start;
+        }
+
+        .message.sent {
+          background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);
+          color: white;
+          border-bottom-right-radius: 0.25rem;
+          align-self: flex-end;
+        }
+
+        .message.sent .message-time {
+          color: rgba(255, 255, 255, 0.7);
+        }
+
+        .chat-input-wrapper {
+          display: flex;
+          gap: 0.75rem;
+          padding: 1rem;
+          border-top: 1px solid #e2e8f0;
+        }
+
+        .chat-input {
+          flex: 1;
+          padding: 0.75rem 1rem;
+          border: 1px solid #e2e8f0;
+          border-radius: 0.5rem;
+          font-size: 0.875rem;
+          outline: none;
+          transition: border-color 0.2s;
+        }
+
+        .chat-input:focus {
+          border-color: #a855f7;
+        }
+
+        .send-button {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+        }
+
+        .no-conversation {
+          flex: 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #94a3b8;
+        }
+
+        @media (max-width: 1024px) {
+          .inbox-page {
+            grid-template-columns: 1fr;
+          }
+
+          .chat-view-card {
+            display: none;
+          }
+        }
+      `}</style>
     </div>
   );
-};
+}
 
 export default Inbox;
