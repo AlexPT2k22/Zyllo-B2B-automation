@@ -133,3 +133,49 @@ CREATE POLICY "Service role full access to instagram_messages"
 CREATE POLICY "Service role full access to automation_rules"
     ON automation_rules FOR ALL
     USING (auth.role() = 'service_role');
+
+-- Quick Replies table
+CREATE TABLE IF NOT EXISTS quick_replies (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    message TEXT NOT NULL,
+    shortcut TEXT, -- e.g. "/price"
+    use_count INTEGER DEFAULT 0,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_quick_replies_user ON quick_replies(user_id);
+
+-- Activity Log table
+CREATE TABLE IF NOT EXISTS activity_log (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    action_type TEXT NOT NULL, -- 'auto_reply', 'manual_reply', 'rule_created', etc.
+    description TEXT,
+    metadata JSONB,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_activity_log_user ON activity_log(user_id);
+CREATE INDEX IF NOT EXISTS idx_activity_log_created_at ON activity_log(created_at DESC);
+
+-- Enable RLS
+ALTER TABLE quick_replies ENABLE ROW LEVEL SECURITY;
+ALTER TABLE activity_log ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policies for Quick Replies
+CREATE POLICY "Users can manage own quick replies"
+    ON quick_replies FOR ALL
+    USING (auth.uid() = user_id);
+
+-- RLS Policies for Activity Log
+CREATE POLICY "Users can view own activity logs"
+    ON activity_log FOR SELECT
+    USING (auth.uid() = user_id);
+
+CREATE POLICY "Service role can insert activity logs"
+    ON activity_log FOR INSERT
+    WITH CHECK (true); -- Allow service role (Edge Functions) to log activities
+
