@@ -402,10 +402,6 @@
   overflow: hidden;
 }
 
-.chart-container {
-  width: 100%;
-}
-
 .chart-legend {
   display: flex;
   gap: 1.5rem;
@@ -440,6 +436,7 @@
 .pie-container {
   display: flex;
   justify-content: center;
+  min-height: 250px;
 }
 
 .pie-legend {

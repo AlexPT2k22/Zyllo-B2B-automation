@@ -38,6 +38,11 @@ import {
   Users,
   ArrowUpRight,
 } from "lucide-react";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
 
 // Mock data for charts (3 months)
 const chartData = [
@@ -210,6 +215,24 @@ const stats = [
   },
 ];
 
+const chartConfig = {
+  value: {
+    label: "Value",
+  },
+  "Auto Reply": {
+    label: "Auto Reply",
+    color: "#a855f7",
+  },
+  "Quick Reply": {
+    label: "Quick Reply",
+    color: "#22c55e",
+  },
+  Manual: {
+    label: "Manual",
+    color: "#64748b",
+  },
+};
+
 function Dashboard() {
   const [timeRange, setTimeRange] = useState("90d");
 
@@ -233,7 +256,7 @@ function Dashboard() {
       <div className="stats-grid">
         {stats.map((stat) => (
           <Card key={stat.title} className="stat-card">
-            <CardContent className="p-6">
+            <CardContent>
               <div className="stat-header">
                 <span className="stat-title">{stat.title}</span>
                 {stat.icon && <stat.icon className="icon" />}
@@ -415,42 +438,37 @@ function Dashboard() {
             <CardTitle className="chart-title">Response Types</CardTitle>
             <CardDescription>How your DMs are being handled</CardDescription>
           </CardHeader>
+
           <CardContent>
-            <div className="chart-container pie-container">
-              <ResponsiveContainer width="100%" height={200}>
-                <PieChart>
-                  <Pie
-                    data={responseTypeData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={5}
-                    dataKey="value"
-                  >
-                    {responseTypeData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    contentStyle={{
-                      background: "#0f0e17",
-                      border: "1px solid rgba(255,255,255,0.1)",
-                      borderRadius: "8px",
-                      boxShadow: "0 4px 6px -1px rgba(0,0,0,0.5)",
-                      color: "#fff",
-                    }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="pie-legend">
+            <ChartContainer
+              config={chartConfig}
+              className="mx-auto aspect-square max-h-[250px]"
+            >
+              <PieChart>
+                <ChartTooltip content={<ChartTooltipContent hideLabel />} />
+
+                <Pie
+                  data={responseTypeData}
+                  dataKey="value"
+                  nameKey="name"
+                  innerRadius={50}
+                  outerRadius={90}
+                >
+                  {responseTypeData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+              </PieChart>
+            </ChartContainer>
+
+            {/* Legend custom (a tua está ótima) */}
+            <div className="pie-legend mt-4">
               {responseTypeData.map((item) => (
                 <div key={item.name} className="pie-legend-item">
                   <span
                     className="pie-legend-dot"
                     style={{ backgroundColor: item.color }}
-                  ></span>
+                  />
                   <span className="pie-legend-name">{item.name}</span>
                   <span className="pie-legend-value">{item.value}</span>
                 </div>
