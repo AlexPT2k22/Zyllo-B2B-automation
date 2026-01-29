@@ -108,7 +108,7 @@ const HowItWorks = () => {
 
                 {step.visualType === "rules" && (
                   <div className="visual-mockup rules-mockup">
-                    <div className="rule-card">
+                    <div className="rule-card-hiw">
                       <div className="rule-header">
                         <span className="rule-label">Trigger</span>
                       </div>
@@ -118,7 +118,7 @@ const HowItWorks = () => {
                       </div>
                     </div>
                     <div className="rule-arrow">↓</div>
-                    <div className="rule-card action">
+                    <div className="rule-card-hiw action">
                       <div className="rule-header">
                         <span className="rule-label">Action</span>
                       </div>

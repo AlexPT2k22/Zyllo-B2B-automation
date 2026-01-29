@@ -110,7 +110,7 @@ const Pricing = () => {
                 <div className="popular-badge">Most Popular</div>
               )}
 
-              <div className="card-content">
+              <div className="card-content-pricing">
                 <div className="plan-header">
                   <h3 className="plan-name">{plan.name}</h3>
                   <p className="plan-desc">{plan.description}</p>

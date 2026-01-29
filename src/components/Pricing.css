@@ -241,6 +241,10 @@
   flex-shrink: 0;
 }
 
+.card-content-pricing {
+  padding: 0;
+}
+
 /* Mobile Responsiveness */
 @media (max-width: 900px) {
   .pricing-grid {
