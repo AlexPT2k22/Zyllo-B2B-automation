@@ -241,9 +241,11 @@ function Inbox() {
         .search-input {
           width: 100%;
           padding: 0.625rem 1rem 0.625rem 2.5rem;
-          border: 1px solid #e2e8f0;
+          background-color: #0f0e17;
+          border: 1px solid rgba(255,255,255,0.1);
           border-radius: 0.5rem;
           font-size: 0.875rem;
+          color: white;
           outline: none;
           transition: border-color 0.2s;
         }
@@ -264,15 +266,15 @@ function Inbox() {
           padding: 1rem;
           cursor: pointer;
           transition: background-color 0.2s;
-          border-bottom: 1px solid #f1f5f9;
+          border-bottom: 1px solid rgba(255,255,255,0.05);
         }
 
         .conversation-item:hover {
-          background-color: #f8fafc;
+          background-color: rgba(255,255,255,0.05);
         }
 
         .conversation-item.active {
-          background-color: #faf5ff;
+          background-color: rgba(168, 85, 247, 0.1);
           border-left: 3px solid #a855f7;
         }
 
@@ -288,7 +290,7 @@ function Inbox() {
           height: 12px;
           background-color: #a855f7;
           border-radius: 50%;
-          border: 2px solid white;
+          border: 2px solid #0f0e17;
         }
 
         .conversation-info {
@@ -305,7 +307,7 @@ function Inbox() {
 
         .conversation-name {
           font-size: 0.875rem;
-          color: #1e293b;
+          color: #ffffff;
         }
 
         .conversation-name.unread {
@@ -319,7 +321,7 @@ function Inbox() {
 
         .conversation-preview {
           font-size: 0.875rem;
-          color: #64748b;
+          color: #94a3b8;
           margin: 0;
           overflow: hidden;
           text-overflow: ellipsis;
@@ -327,7 +329,7 @@ function Inbox() {
         }
 
         .conversation-preview.unread {
-          color: #1e293b;
+          color: #ffffff;
           font-weight: 500;
         }
 
@@ -342,7 +344,7 @@ function Inbox() {
           flex-direction: row;
           align-items: center;
           justify-content: space-between;
-          border-bottom: 1px solid #e2e8f0;
+          border-bottom: 1px solid rgba(255,255,255,0.1);
         }
 
         .chat-user-info {
@@ -354,7 +356,7 @@ function Inbox() {
         .chat-user-name {
           font-size: 0.875rem;
           font-weight: 600;
-          color: #1e293b;
+          color: #ffffff;
           margin: 0 0 0.25rem;
         }
 
@@ -384,7 +386,8 @@ function Inbox() {
         }
 
         .message.received {
-          background-color: #f1f5f9;
+          background-color: rgba(255,255,255,0.1);
+          color: #ffffff;
           border-bottom-left-radius: 0.25rem;
           align-self: flex-start;
         }
@@ -404,15 +407,17 @@ function Inbox() {
           display: flex;
           gap: 0.75rem;
           padding: 1rem;
-          border-top: 1px solid #e2e8f0;
+          border-top: 1px solid rgba(255,255,255,0.1);
         }
 
         .chat-input {
           flex: 1;
           padding: 0.75rem 1rem;
-          border: 1px solid #e2e8f0;
+          background-color: #0f0e17;
+          border: 1px solid rgba(255,255,255,0.1);
           border-radius: 0.5rem;
           font-size: 0.875rem;
+          color: white;
           outline: none;
           transition: border-color 0.2s;
         }

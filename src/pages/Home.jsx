@@ -5,7 +5,6 @@ import Features from "../components/Features";
 import ComparisonTable from "../components/ComparisonTable";
 import ROICalculator from "../components/ROICalculator";
 import HowItWorks from "../components/HowItWorks";
-import DashboardPreview from "../components/DashboardPreview";
 import Pricing from "../components/Pricing";
 import FAQ from "../components/FAQ";
 
@@ -18,7 +17,6 @@ const Home = () => {
       <ComparisonTable />
       <ROICalculator />
       <HowItWorks />
-      <DashboardPreview />
       <Pricing />
       <FAQ />
     </>

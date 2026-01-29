@@ -298,8 +298,8 @@ function Automations() {
           display: flex;
           gap: 1.5rem;
           padding: 1rem 0;
-          border-top: 1px solid #e2e8f0;
-          border-bottom: 1px solid #e2e8f0;
+          border-top: 1px solid rgba(255,255,255,0.1);
+          border-bottom: 1px solid rgba(255,255,255,0.1);
           margin-bottom: 1rem;
         }
 
@@ -312,12 +312,12 @@ function Automations() {
         .stat-number {
           font-size: 1.125rem;
           font-weight: 600;
-          color: #1e293b;
+          color: #ffffff;
         }
 
         .stat-text {
           font-size: 0.75rem;
-          color: #64748b;
+          color: #94a3b8;
         }
 
         .automation-actions {

@@ -90,7 +90,6 @@ const stats = [
     value: "2,847",
     change: "+12.5%",
     trend: "up",
-    icon: MessageSquare,
     description: "vs last week",
   },
   {
@@ -128,9 +127,10 @@ function Dashboard() {
           <Card key={stat.title} className="stat-card">
             <CardContent className="p-6">
               <div className="stat-header">
-                <div className="stat-icon-wrapper">
-                  <stat.icon className="stat-icon" />
-                </div>
+                <span className="stat-title">{stat.title}</span>
+              </div>
+              <div className="stat-value">
+                {stat.value}
                 <div
                   className={`stat-change ${stat.trend === "up" ? "positive" : "negative"}`}
                 >
@@ -142,9 +142,7 @@ function Dashboard() {
                   <span>{stat.change}</span>
                 </div>
               </div>
-              <div className="stat-value">{stat.value}</div>
               <div className="stat-label">
-                <span className="stat-title">{stat.title}</span>
                 <span className="stat-description">{stat.description}</span>
               </div>
             </CardContent>
@@ -188,7 +186,10 @@ function Dashboard() {
                       <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    stroke="rgba(255,255,255,0.1)"
+                  />
                   <XAxis
                     dataKey="name"
                     stroke="#94a3b8"
@@ -204,10 +205,11 @@ function Dashboard() {
                   />
                   <Tooltip
                     contentStyle={{
-                      background: "white",
-                      border: "1px solid #e2e8f0",
+                      background: "#0f0e17",
+                      border: "1px solid rgba(255,255,255,0.1)",
                       borderRadius: "8px",
-                      boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)",
+                      boxShadow: "0 4px 6px -1px rgba(0,0,0,0.5)",
+                      color: "#fff",
                     }}
                   />
                   <Area
@@ -269,10 +271,11 @@ function Dashboard() {
                   </Pie>
                   <Tooltip
                     contentStyle={{
-                      background: "white",
-                      border: "1px solid #e2e8f0",
+                      background: "#0f0e17",
+                      border: "1px solid rgba(255,255,255,0.1)",
                       borderRadius: "8px",
-                      boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)",
+                      boxShadow: "0 4px 6px -1px rgba(0,0,0,0.5)",
+                      color: "#fff",
                     }}
                   />
                 </PieChart>
@@ -318,7 +321,7 @@ function Dashboard() {
                 >
                   <CartesianGrid
                     strokeDasharray="3 3"
-                    stroke="#e2e8f0"
+                    stroke="rgba(255,255,255,0.1)"
                     vertical={false}
                   />
                   <XAxis
@@ -336,10 +339,11 @@ function Dashboard() {
                   />
                   <Tooltip
                     contentStyle={{
-                      background: "white",
-                      border: "1px solid #e2e8f0",
+                      background: "#0f0e17",
+                      border: "1px solid rgba(255,255,255,0.1)",
                       borderRadius: "8px",
-                      boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)",
+                      boxShadow: "0 4px 6px -1px rgba(0,0,0,0.5)",
+                      color: "#fff",
                     }}
                     cursor={{ fill: "rgba(168, 85, 247, 0.1)" }}
                   />
@@ -405,268 +409,6 @@ function Dashboard() {
           </CardContent>
         </Card>
       </div>
-
-      <style>{`
-        .dashboard-page {
-          display: flex;
-          flex-direction: column;
-          gap: 1.5rem;
-        }
-
-        .stats-grid {
-          display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: 1rem;
-        }
-
-        .stat-card {
-          overflow: hidden;
-        }
-
-        .stat-header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          margin-bottom: 1rem;
-        }
-
-        .stat-icon-wrapper {
-          width: 40px;
-          height: 40px;
-          background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);
-          border-radius: 10px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        .stat-icon {
-          width: 20px;
-          height: 20px;
-          color: white;
-        }
-
-        .stat-change {
-          display: flex;
-          align-items: center;
-          gap: 0.25rem;
-          font-size: 0.75rem;
-          font-weight: 600;
-          padding: 0.25rem 0.5rem;
-          border-radius: 9999px;
-        }
-
-        .stat-change.positive {
-          background-color: #dcfce7;
-          color: #16a34a;
-        }
-
-        .stat-change.negative {
-          background-color: #fef2f2;
-          color: #dc2626;
-        }
-
-        .stat-value {
-          font-size: 2rem;
-          font-weight: 700;
-          color: #1e293b;
-          line-height: 1;
-          margin-bottom: 0.5rem;
-        }
-
-        .stat-label {
-          display: flex;
-          flex-direction: column;
-          gap: 0.125rem;
-        }
-
-        .stat-title {
-          font-size: 0.875rem;
-          font-weight: 500;
-          color: #1e293b;
-        }
-
-        .stat-description {
-          font-size: 0.75rem;
-          color: #64748b;
-        }
-
-        .charts-grid {
-          display: grid;
-          grid-template-columns: 2fr 1fr;
-          gap: 1rem;
-        }
-
-        .chart-card {
-          overflow: hidden;
-        }
-
-        .chart-container {
-          width: 100%;
-        }
-
-        .chart-legend {
-          display: flex;
-          gap: 1.5rem;
-          justify-content: center;
-          margin-top: 1rem;
-          padding-top: 1rem;
-          border-top: 1px solid #e2e8f0;
-        }
-
-        .legend-item {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          font-size: 0.875rem;
-          color: #64748b;
-        }
-
-        .legend-dot {
-          width: 10px;
-          height: 10px;
-          border-radius: 50%;
-        }
-
-        .legend-dot.messages {
-          background-color: #a855f7;
-        }
-
-        .legend-dot.responses {
-          background-color: #22c55e;
-        }
-
-        .pie-container {
-          display: flex;
-          justify-content: center;
-        }
-
-        .pie-legend {
-          display: flex;
-          flex-direction: column;
-          gap: 0.75rem;
-          margin-top: 1rem;
-        }
-
-        .pie-legend-item {
-          display: flex;
-          align-items: center;
-          gap: 0.75rem;
-        }
-
-        .pie-legend-dot {
-          width: 10px;
-          height: 10px;
-          border-radius: 50%;
-        }
-
-        .pie-legend-name {
-          flex: 1;
-          font-size: 0.875rem;
-          color: #64748b;
-        }
-
-        .pie-legend-value {
-          font-size: 0.875rem;
-          font-weight: 600;
-          color: #1e293b;
-        }
-
-        .bottom-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 1rem;
-        }
-
-        .view-all-link {
-          display: flex;
-          align-items: center;
-          gap: 0.25rem;
-          font-size: 0.875rem;
-          color: #a855f7;
-          font-weight: 500;
-          text-decoration: none;
-        }
-
-        .view-all-link:hover {
-          text-decoration: underline;
-        }
-
-        .messages-list {
-          display: flex;
-          flex-direction: column;
-          gap: 1rem;
-        }
-
-        .message-item {
-          display: flex;
-          align-items: flex-start;
-          gap: 0.75rem;
-          padding: 0.75rem;
-          border-radius: 0.5rem;
-          transition: background-color 0.2s;
-        }
-
-        .message-item:hover {
-          background-color: #f8fafc;
-        }
-
-        .message-content {
-          flex: 1;
-          min-width: 0;
-        }
-
-        .message-header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          margin-bottom: 0.25rem;
-        }
-
-        .message-user {
-          font-size: 0.875rem;
-          font-weight: 600;
-          color: #1e293b;
-        }
-
-        .message-time {
-          font-size: 0.75rem;
-          color: #94a3b8;
-        }
-
-        .message-text {
-          font-size: 0.875rem;
-          color: #64748b;
-          margin: 0;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        }
-
-        .message-status {
-          flex-shrink: 0;
-        }
-
-        @media (max-width: 1280px) {
-          .stats-grid {
-            grid-template-columns: repeat(2, 1fr);
-          }
-
-          .charts-grid {
-            grid-template-columns: 1fr;
-          }
-
-          .bottom-grid {
-            grid-template-columns: 1fr;
-          }
-        }
-
-        @media (max-width: 768px) {
-          .stats-grid {
-            grid-template-columns: 1fr;
-          }
-        }
-      `}</style>
     </div>
   );
 }
