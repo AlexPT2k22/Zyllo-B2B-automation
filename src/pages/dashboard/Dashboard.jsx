@@ -235,7 +235,7 @@ const chartConfig = {
 };
 
 function Dashboard() {
-  const [timeRange, setTimeRange] = useState("90d");
+  const [timeRange, setTimeRange] = useState("7d");
 
   const filteredData = chartData.filter((item) => {
     const date = new Date(item.date);
