@@ -39,10 +39,11 @@ import {
   ArrowUpRight,
 } from "lucide-react";
 import {
-  ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
+  ChartContainer,
 } from "@/components/ui/chart";
+import { CountUp } from "@/components/ui/count-up";
 
 // Mock data for charts (3 months)
 const chartData = [
@@ -257,12 +258,38 @@ function Dashboard() {
         {stats.map((stat) => (
           <Card key={stat.title} className="stat-card">
             <CardContent>
-              <div className="stat-header">
-                <span className="stat-title">{stat.title}</span>
-                {stat.icon && <stat.icon className="icon" />}
+              <div className="stat-header flex items-center justify-between">
+                <span className="stat-title text-sm font-medium text-muted-foreground">
+                  {stat.title}
+                </span>
+
+                {stat.icon && (
+                  <div className="flex h-9 w-9 items-center justify-center rounded-md bg-white/5">
+                    <stat.icon className="h-5 w-5 text-white/70" />
+                  </div>
+                )}
               </div>
-              <div className="stat-value">
-                {stat.value}
+              <div className="stat-value text-2xl font-semibold tabular-nums">
+                {(() => {
+                  const rawNum = parseFloat(stat.value.replace(/[^0-9.]/g, ""));
+                  const isPercentage = stat.value.includes("%");
+                  const isTime = stat.value.includes(" min");
+
+                  let suffix = "";
+                  if (isPercentage) suffix = "%";
+                  if (isTime) suffix = " min";
+
+                  const decimalPlaces = stat.value.includes(".")
+                    ? stat.value.split(".")[1].replace(/[^0-9]/g, "").length
+                    : 0;
+
+                  return (
+                    <>
+                      <CountUp value={rawNum} decimalPlaces={decimalPlaces} />
+                      {suffix}
+                    </>
+                  );
+                })()}
                 <div
                   className={`stat-change ${stat.trend === "up" ? "positive" : "negative"}`}
                 >
