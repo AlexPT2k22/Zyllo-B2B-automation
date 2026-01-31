@@ -40,7 +40,7 @@ function DashboardLayout() {
         <div className="sidebar-header">
           <div className="logo">
             <div className="logo-icon">
-              <img src="/Zolly Logo.png" alt="Zyllo" className="logo-image"/>
+              <img src="/Zolly Logo.png" alt="Zyllo" className="logo-image" />
             </div>
           </div>
           <button
@@ -57,24 +57,20 @@ function DashboardLayout() {
         </div>
 
         <nav className="sidebar-nav">
-          {navigation.map((item) => {
-            const isActive =
-              location.pathname === item.href ||
-              (item.href !== "/dashboard" &&
-                location.pathname.startsWith(item.href));
-
-            return (
-              <NavLink
-                key={item.name}
-                to={item.href}
-                className={`nav-item ${isActive ? "active" : ""}`}
-                title={item.name}
-              >
-                <item.icon className="nav-icon" />
-                {!isCollapsed && <span className="nav-text">{item.name}</span>}
-              </NavLink>
-            );
-          })}
+          {navigation.map((item) => (
+            <NavLink
+              key={item.name}
+              to={item.href}
+              end={item.href === "/dashboard"}
+              className={({ isActive }) =>
+                `nav-item ${isActive ? "active" : ""}`
+              }
+              title={item.name}
+            >
+              <item.icon className="nav-icon" />
+              {!isCollapsed && <span className="nav-text">{item.name}</span>}
+            </NavLink>
+          ))}
         </nav>
 
         <div className="sidebar-footer">
@@ -106,7 +102,6 @@ function DashboardLayout() {
 
       {/* Main Content */}
       <div className={`dashboard-main ${isCollapsed ? "collapsed" : ""}`}>
-
         {/* Content */}
         <main className="dashboard-content">
           <Outlet />

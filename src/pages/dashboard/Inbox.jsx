@@ -129,7 +129,7 @@ function Inbox() {
   ];
 
   return (
-    <div className="flex h-[calc(100vh-8rem)] overflow-hidden rounded-xl border border-white/10 bg-black/20 shadow-sm backdrop-blur-sm">
+    <div className="flex h-screen overflow-hidden rounded-none border-0 bg-black/20 shadow-sm backdrop-blur-sm -m-8">
       {/* 1. Inbox Navigation Sidebar */}
       <div className="w-[240px] flex flex-col border-r border-white/10 bg-black/20">
         {/* Real Search Input */}
