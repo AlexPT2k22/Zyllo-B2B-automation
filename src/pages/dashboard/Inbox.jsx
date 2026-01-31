@@ -122,7 +122,14 @@ function Inbox() {
   );
   const [inputText, setInputText] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeChannel, setActiveChannel] = useState("instagram");
+  const [activeChannel, setActiveChannel] = useState(
+    selectedConversation.platform,
+  );
+
+  // Sync activeChannel with selected conversation's platform
+  React.useEffect(() => {
+    setActiveChannel(selectedConversation.platform);
+  }, [selectedConversation]);
 
   const channels = [
     { id: "instagram", label: "Instagram", icon: Instagram },
@@ -366,23 +373,20 @@ function Inbox() {
 
         {/* Chat Input */}
         <div className="p-4 border-t border-white/10 bg-white/5">
-          {/* Channel Tabs - Functional */}
-          <div className="flex items-center gap-4 mb-2 text-muted-foreground px-2">
-            <div className="flex items-center gap-4 text-xs font-medium">
-              {channels.map((channel) => (
-                <button
-                  key={channel.id}
-                  onClick={() => setActiveChannel(channel.id)}
-                  className={`flex items-center gap-1 transition-colors pb-0.5 ${
-                    activeChannel === channel.id
-                      ? "text-white border-b-2 border-primary"
-                      : "hover:text-white"
-                  }`}
-                >
-                  <channel.icon className="w-3.5 h-3.5" />
-                  {channel.label}
-                </button>
-              ))}
+          {/* Platform indicator - Read only */}
+          <div className="flex items-center gap-2 mb-2 px-2">
+            <span className="text-xs text-muted-foreground">Replying via</span>
+            <div className="flex items-center gap-1.5 text-xs font-medium text-white bg-white/10 px-2 py-1 rounded-full">
+              {channels.find((c) => c.id === selectedConversation.platform)
+                ?.icon &&
+                React.createElement(
+                  channels.find((c) => c.id === selectedConversation.platform)
+                    .icon,
+                  { className: "w-3.5 h-3.5" },
+                )}
+              <span className="capitalize">
+                {selectedConversation.platform}
+              </span>
             </div>
           </div>
           <div className="bg-black/20 rounded-xl border border-white/10 overflow-hidden focus-within:ring-1 focus-within:ring-primary focus-within:border-primary transition-all shadow-sm">
