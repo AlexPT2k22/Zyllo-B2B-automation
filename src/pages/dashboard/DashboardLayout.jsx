@@ -31,7 +31,7 @@ const navigation = [
 
 function DashboardLayout() {
   const location = useLocation();
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true);
 
   return (
     <div className="dashboard-container">
@@ -43,6 +43,7 @@ function DashboardLayout() {
               <img src="/Zolly Logo.png" alt="Zyllo" className="logo-image" />
             </div>
           </div>
+          {/*
           <button
             className="sidebar-toggle"
             onClick={() => setIsCollapsed(!isCollapsed)}
@@ -54,6 +55,7 @@ function DashboardLayout() {
               <ArrowLeft className="w-5 h-5" />
             )}
           </button>
+          */}
         </div>
 
         <nav className="sidebar-nav">

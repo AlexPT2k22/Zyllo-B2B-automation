@@ -23,6 +23,7 @@ import {
   Clock,
   X,
   Music2,
+  Play,
 } from "lucide-react";
 
 // Platform icons mapping
@@ -129,9 +130,9 @@ function Inbox() {
   ];
 
   return (
-    <div className="flex h-screen overflow-hidden rounded-none border-0 bg-black/20 shadow-sm backdrop-blur-sm -m-8">
+    <div className="inbox-container flex h-screen overflow-hidden rounded-none border-0 bg-black/20 shadow-sm backdrop-blur-sm -m-8">
       {/* 1. Inbox Navigation Sidebar */}
-      <div className="w-[240px] flex flex-col border-r border-white/10 bg-black/20">
+      <div className="inbox-nav-sidebar w-[240px] shrink-0 flex-col border-r border-white/10 bg-black/20 hidden lg:flex">
         {/* Real Search Input */}
         <div className="p-4">
           <div className="relative">
@@ -170,7 +171,7 @@ function Inbox() {
       </div>
 
       {/* 2. Conversation List */}
-      <div className="w-[320px] flex flex-col border-r border-white/10 bg-black/10">
+      <div className="inbox-conversation-list w-full sm:w-[280px] md:w-[320px] shrink-0 flex flex-col border-r border-white/10 bg-black/10">
         <div className="p-4 border-b border-white/10 flex items-center justify-between">
           <h2 className="font-semibold flex items-center gap-2 text-white">
             <span className="text-primary">
@@ -239,7 +240,7 @@ function Inbox() {
       </div>
 
       {/* 3. Conversation Details / Chat */}
-      <div className="flex-1 flex flex-col relative min-w-0 bg-transparent">
+      <div className="inbox-chat flex-1 flex flex-col relative min-w-0 bg-transparent hidden sm:flex">
         {/* Chat Header */}
         <div className="h-16 border-b border-white/10 flex items-center justify-between px-6">
           <div className="flex items-center gap-3">
@@ -305,18 +306,28 @@ function Inbox() {
                 )}
 
                 {msg.type === "voice" ? (
-                  <div className="bg-white/5 p-3 rounded-2xl rounded-tl-none flex items-center gap-3 w-64 border border-white/10">
+                  <div className="bg-white/5 p-3 rounded-2xl rounded-tl-none flex items-center gap-3 w-72 border border-white/10">
                     <Button
                       size="icon"
                       variant="ghost"
-                      className="h-8 w-8 rounded-full bg-white/10 hover:bg-white/20 text-white"
+                      className="h-8 w-8 rounded-full bg-purple-500/20 hover:bg-purple-500/30 text-purple-500 hover:text-purple-500/30 shrink-0"
                     >
-                      <span className="text-xs">▶️</span>
+                      <Play className="w-4 h-4" />
                     </Button>
-                    <div className="h-1 flex-1 bg-primary/20 rounded-full overflow-hidden">
-                      <div className="h-full w-1/3 bg-primary"></div>
+                    {/* Waveform visualization */}
+                    <div className="flex-1 flex items-center gap-[2px] h-6">
+                      {[
+                        40, 70, 30, 80, 50, 90, 40, 60, 75, 35, 85, 45, 70, 55,
+                        80, 30, 65, 50, 75, 40, 60, 85, 35, 70,
+                      ].map((height, i) => (
+                        <div
+                          key={i}
+                          className={`w-[3px] rounded-full ${i < 8 ? "bg-purple-500" : "bg-white/20"}`}
+                          style={{ height: `${height}%` }}
+                        />
+                      ))}
                     </div>
-                    <span className="text-xs font-medium text-white">
+                    <span className="text-xs font-medium text-white shrink-0">
                       {msg.duration}
                     </span>
                   </div>
@@ -417,7 +428,7 @@ function Inbox() {
       </div>
 
       {/* 4. Customer Details Panel - Coming Soon */}
-      <div className="w-[280px] border-l border-white/10 bg-black/20 flex flex-col">
+      <div className="inbox-customer-panel w-[280px] shrink-0 border-l border-white/10 bg-black/20 flex-col hidden xl:flex">
         {/* Customer Header */}
         <div className="p-4 border-b border-white/10">
           <div className="flex items-center gap-3 mb-3">
