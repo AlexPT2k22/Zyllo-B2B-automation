@@ -12,13 +12,27 @@ import {
   Send,
   Inbox as InboxIcon,
   MessageCircle,
-  Hash,
   Instagram,
   Users,
   CheckCircle2,
-  MoreHorizontal,
   Pin,
+  Mail,
+  MapPin,
+  Tag,
+  Sparkles,
+  Clock,
+  X,
+  Music2,
 } from "lucide-react";
+
+// Platform icons mapping
+const PlatformIcon = ({ platform }) => {
+  const icons = {
+    instagram: <img src="/icons8-instagram.svg" className="w-6 h-6" />,
+    tiktok: <img src="/icons8-tiktok.svg" className="w-6 h-6" />,
+  };
+  return icons[platform] || null;
+};
 
 // Mock Data
 const conversations = [
@@ -31,7 +45,7 @@ const conversations = [
     time: "10:44 AM",
     unread: 3,
     status: "open",
-    platform: "chat",
+    platform: "instagram",
     tags: ["High Intent", "Pricing"],
     email: "herrybrooks@gmail.com",
     location: "Los Angeles, CA",
@@ -45,7 +59,7 @@ const conversations = [
     time: "Jul 2024",
     unread: 1,
     status: "open",
-    platform: "email",
+    platform: "tiktok",
     tags: ["Beta"],
     email: "jonas@smith.com",
     location: "New York, NY",
@@ -59,7 +73,7 @@ const conversations = [
     time: "Jul 2024",
     unread: 0,
     status: "closed",
-    platform: "whatsapp",
+    platform: "instagram",
     tags: [],
     email: "sahid@ajmol.com",
     location: "London, UK",
@@ -106,19 +120,38 @@ function Inbox() {
     conversations[0],
   );
   const [inputText, setInputText] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeChannel, setActiveChannel] = useState("instagram");
+
+  const channels = [
+    { id: "instagram", label: "Instagram", icon: Instagram },
+    { id: "tiktok", label: "TikTok", icon: Music2 },
+  ];
 
   return (
     <div className="flex h-[calc(100vh-8rem)] overflow-hidden rounded-xl border border-white/10 bg-black/20 shadow-sm backdrop-blur-sm">
       {/* 1. Inbox Navigation Sidebar */}
       <div className="w-[240px] flex flex-col border-r border-white/10 bg-black/20">
+        {/* Real Search Input */}
         <div className="p-4">
-          <Button
-            variant="outline"
-            className="w-full justify-start gap-2 border-dashed border-white/20 bg-white/5 text-muted-foreground hover:bg-white/10 hover:text-white"
-          >
-            <Search className="w-4 h-4" />
-            <span>Search inbox...</span>
-          </Button>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Search inbox..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-9 pr-3 py-2 text-sm bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-white"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="flex-1 overflow-y-auto py-2">
@@ -177,25 +210,24 @@ function Inbox() {
                   >
                     {convo.user}
                   </span>
-                  {convo.platform === "instagram" && (
-                    <Instagram className="w-3 h-3 text-pink-500" />
-                  )}
+                  {/* Platform Indicator - Always show */}
+                  <PlatformIcon platform={convo.platform} />
                 </div>
                 <span className="text-xs text-muted-foreground whitespace-nowrap">
                   {convo.time}
                 </span>
               </div>
 
-              <div className="pl-10">
+              <div className="pl-10 flex items-center gap-2">
                 <p
-                  className={`text-sm line-clamp-2 mb-2 ${convo.unread > 0 ? "text-gray-300 font-medium" : "text-muted-foreground"}`}
+                  className={`text-sm line-clamp-1 ${convo.unread > 0 ? "text-gray-300 font-medium" : "text-muted-foreground"}`}
                 >
                   {convo.lastMessage}
                 </p>
                 {convo.unread > 0 && (
                   <Badge
                     variant="default"
-                    className="h-5 px-1.5 bg-primary text-primary-foreground"
+                    className="h-5 px-1.5 bg-purple-500 text-primary-foreground"
                   >
                     {convo.unread}
                   </Badge>
@@ -216,8 +248,9 @@ function Inbox() {
               <AvatarFallback>{selectedConversation.user[0]}</AvatarFallback>
             </Avatar>
             <div>
-              <h2 className="font-semibold text-sm text-white">
+              <h2 className="font-semibold text-sm text-white flex items-center gap-2">
                 {selectedConversation.user}
+                <PlatformIcon platform={selectedConversation.platform} />
               </h2>
               <span className="text-xs text-muted-foreground flex items-center gap-1">
                 Assignee{" "}
@@ -322,23 +355,29 @@ function Inbox() {
 
         {/* Chat Input */}
         <div className="p-4 border-t border-white/10 bg-white/5">
+          {/* Channel Tabs - Functional */}
           <div className="flex items-center gap-4 mb-2 text-muted-foreground px-2">
             <div className="flex items-center gap-4 text-xs font-medium">
-              <button className="text-white hover:text-primary transition-colors flex items-center gap-1 border-b-2 border-primary pb-0.5">
-                <MessageCircle className="w-3.5 h-3.5" /> Chat
-              </button>
-              <button className="hover:text-white transition-colors flex items-center gap-1">
-                <MessageCircle className="w-3.5 h-3.5" /> Messenger
-              </button>
-              <button className="hover:text-white transition-colors flex items-center gap-1">
-                <Instagram className="w-3.5 h-3.5" /> Instagram
-              </button>
+              {channels.map((channel) => (
+                <button
+                  key={channel.id}
+                  onClick={() => setActiveChannel(channel.id)}
+                  className={`flex items-center gap-1 transition-colors pb-0.5 ${
+                    activeChannel === channel.id
+                      ? "text-white border-b-2 border-primary"
+                      : "hover:text-white"
+                  }`}
+                >
+                  <channel.icon className="w-3.5 h-3.5" />
+                  {channel.label}
+                </button>
+              ))}
             </div>
           </div>
           <div className="bg-black/20 rounded-xl border border-white/10 overflow-hidden focus-within:ring-1 focus-within:ring-primary focus-within:border-primary transition-all shadow-sm">
             <textarea
               className="w-full bg-transparent p-3 text-sm focus:outline-none resize-none min-h-[50px] max-h-[150px] text-white placeholder:text-muted-foreground"
-              placeholder="Write a message..."
+              placeholder={`Write a message via ${activeChannel}...`}
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
             />
@@ -376,6 +415,82 @@ function Inbox() {
           </div>
         </div>
       </div>
+
+      {/* 4. Customer Details Panel - Coming Soon */}
+      <div className="w-[280px] border-l border-white/10 bg-black/20 flex flex-col">
+        {/* Customer Header */}
+        <div className="p-4 border-b border-white/10">
+          <div className="flex items-center gap-3 mb-3">
+            <Avatar className="h-12 w-12">
+              <AvatarImage src={selectedConversation.avatar} />
+              <AvatarFallback>{selectedConversation.user[0]}</AvatarFallback>
+            </Avatar>
+            <div>
+              <h3 className="font-semibold text-white">
+                {selectedConversation.user}
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                {selectedConversation.role}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Customer Info */}
+        <div className="p-4 space-y-4 border-b border-white/10">
+          <InfoItem
+            icon={Mail}
+            label="Email"
+            value={selectedConversation.email}
+          />
+          <InfoItem
+            icon={MapPin}
+            label="Location"
+            value={selectedConversation.location}
+          />
+          <InfoItem icon={Clock} label="First seen" value="Jul 07, 2024" />
+        </div>
+
+        {/* Tags */}
+        <div className="p-4 border-b border-white/10">
+          <div className="flex items-center gap-2 mb-3">
+            <Tag className="w-4 h-4 text-muted-foreground" />
+            <span className="text-sm font-medium text-white">Tags</span>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {selectedConversation.tags.length > 0 ? (
+              selectedConversation.tags.map((tag) => (
+                <Badge
+                  key={tag}
+                  variant="outline"
+                  className="text-xs border-white/20 text-muted-foreground"
+                >
+                  {tag}
+                </Badge>
+              ))
+            ) : (
+              <span className="text-xs text-muted-foreground">No tags</span>
+            )}
+          </div>
+        </div>
+
+        {/* AI Suggestions - Coming Soon */}
+        <div className="p-4 flex-1">
+          <div className="flex items-center gap-2 mb-3">
+            <Sparkles className="w-4 h-4 text-purple-400" />
+            <span className="text-sm font-medium text-white">
+              AI Suggestions
+            </span>
+          </div>
+          <div className="bg-white/5 rounded-lg border border-white/10 border-dashed p-6 text-center">
+            <Sparkles className="w-8 h-8 text-purple-400/50 mx-auto mb-2" />
+            <p className="text-sm text-muted-foreground">Coming Soon</p>
+            <p className="text-xs text-muted-foreground/70 mt-1">
+              AI-powered response suggestions
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -408,17 +523,13 @@ function NavItem({ icon: Icon, label, count, active, badgeColor }) {
   );
 }
 
-function InfoItem({ icon: Icon, label, value, dashed }) {
+function InfoItem({ icon: Icon, label, value }) {
   return (
     <div className="flex items-start gap-3 text-sm">
       <Icon className="w-4 h-4 text-muted-foreground mt-0.5" />
-      <div className="flex-1">
+      <div className="flex-1 min-w-0">
         <p className="text-muted-foreground text-xs mb-0.5">{label}</p>
-        <p
-          className={`font-medium ${dashed ? "text-muted-foreground border-b border-dashed border-muted-foreground/50 inline-block pb-0.5 cursor-pointer" : "text-white"}`}
-        >
-          {value}
-        </p>
+        <p className="font-medium text-white truncate">{value}</p>
       </div>
     </div>
   );
