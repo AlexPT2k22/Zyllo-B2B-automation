@@ -73,20 +73,30 @@
   color: #fff;
 }
 
-/* Sidebar */
+/* ==================== SIDEBAR ==================== */
 .dashboard-sidebar {
   width: 260px;
-  background: rgba(10, 10, 15, 0.6);
+  background: rgba(10, 10, 15, 0.8);
   backdrop-filter: blur(12px);
   display: flex;
   flex-direction: column;
   position: fixed;
   height: 100vh;
   z-index: 50;
+  transition: width 0.25s ease-in-out;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.dashboard-sidebar.collapsed {
+  width: 72px;
 }
 
 .sidebar-header {
-  padding: 1.5rem;
+  padding: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 72px;
 }
 
 .logo {
@@ -95,29 +105,35 @@
   gap: 0.75rem;
 }
 
-.logo-icon {
-  width: 36px;
-  height: 36px;
-  background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);
-  border-radius: 10px;
+/* Sidebar Toggle - In header */
+.sidebar-toggle {
+  color: #94a3b8;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 0 20px rgba(168, 85, 247, 0.3);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-left: auto;
 }
 
-.logo-text {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #ffffff;
+.sidebar-toggle:hover {
+  background: rgba(168, 85, 247, 0.2);
+  border-color: rgba(168, 85, 247, 0.4);
+  color: #a855f7;
 }
 
 .sidebar-nav {
   flex: 1;
-  padding: 1rem;
+  padding: 0.5rem 0.75rem;
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .nav-item {
@@ -125,27 +141,36 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem 1rem;
-  border-radius: 0.5rem;
+  border-radius: 10px;
   color: #94a3b8;
   font-size: 0.875rem;
   font-weight: 500;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
   text-decoration: none;
+  white-space: nowrap;
+}
+
+.dashboard-sidebar.collapsed .nav-item {
+  justify-content: center;
+  padding: 0.75rem;
 }
 
 .nav-item:hover {
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: rgba(255, 255, 255, 0.06);
   color: #ffffff;
 }
 
 .nav-item.active {
   background: linear-gradient(
     90deg,
-    rgba(168, 85, 247, 0.2) 0%,
-    rgba(168, 85, 247, 0) 100%
+    rgba(168, 85, 247, 0.25) 0%,
+    rgba(168, 85, 247, 0.05) 100%
   );
   color: #a855f7;
-  border-radius: 0.5rem;
+}
+
+.dashboard-sidebar.collapsed .nav-item.active {
+  background: rgba(168, 85, 247, 0.2);
 }
 
 .nav-item.active .nav-icon {
@@ -155,13 +180,26 @@
 .nav-icon {
   width: 20px;
   height: 20px;
+  min-width: 20px;
+}
+
+.nav-text {
+  white-space: nowrap;
 }
 
 .sidebar-footer {
   padding: 1rem;
+  padding-bottom: 5rem; /* Space for toggle button */
   display: flex;
   align-items: center;
   justify-content: space-between;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.dashboard-sidebar.collapsed .sidebar-footer {
+  justify-content: center;
+  padding: 1rem;
+  padding-bottom: 5rem;
 }
 
 .user-info {
@@ -173,6 +211,7 @@
 .user-details {
   display: flex;
   flex-direction: column;
+  white-space: nowrap;
 }
 
 .user-name {
@@ -197,16 +236,21 @@
   background-color: rgba(239, 68, 68, 0.1);
 }
 
-/* Main Content */
+/* ==================== MAIN CONTENT ==================== */
 .dashboard-main {
   flex: 1;
   margin-left: 260px;
   display: flex;
   flex-direction: column;
+  transition: margin-left 0.25s ease-in-out;
+}
+
+.dashboard-main.collapsed {
+  margin-left: 72px;
 }
 
 .dashboard-header {
-  background: rgba(10, 10, 15, 0.6);
+  background: rgba(10, 10, 15, 0.7);
   backdrop-filter: blur(12px);
   padding: 1rem 2rem;
   display: flex;
@@ -215,6 +259,7 @@
   position: sticky;
   top: 0;
   z-index: 40;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .header-left {
@@ -263,15 +308,19 @@
   overflow-y: auto;
 }
 
-/* Responsive */
+/* ==================== RESPONSIVE ==================== */
 @media (max-width: 1024px) {
   .dashboard-sidebar {
-    width: 80px;
+    width: 72px;
   }
 
   .logo-text,
-  .nav-item span,
+  .nav-text,
   .user-details {
+    display: none;
+  }
+
+  .sidebar-toggle {
     display: none;
   }
 
@@ -284,12 +333,8 @@
     justify-content: center;
   }
 
-  .user-info {
-    gap: 0;
-  }
-
   .dashboard-main {
-    margin-left: 80px;
+    margin-left: 72px;
   }
 }
 
@@ -307,7 +352,7 @@
   }
 }
 
-/* Dashboard Page Styles (Moved from JSX) */
+/* ==================== DASHBOARD PAGE STYLES ==================== */
 .dashboard-page {
   display: flex;
   flex-direction: column;

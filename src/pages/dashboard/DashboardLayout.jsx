@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Outlet, NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -8,6 +8,10 @@ import {
   Settings,
   LogOut,
   Bell,
+  PanelLeftClose,
+  PanelLeftOpen,
+  ArrowLeft,
+  ArrowRight,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -27,18 +31,29 @@ const navigation = [
 
 function DashboardLayout() {
   const location = useLocation();
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   return (
     <div className="dashboard-container">
       {/* Sidebar */}
-      <aside className="dashboard-sidebar">
+      <aside className={`dashboard-sidebar ${isCollapsed ? "collapsed" : ""}`}>
         <div className="sidebar-header">
           <div className="logo">
             <div className="logo-icon">
-              <Zap className="w-5 h-5 text-white" />
+              <img src="/Zolly Logo.png" alt="Zyllo" className="logo-image"/>
             </div>
-            <span className="logo-text">Zyllo</span>
           </div>
+          <button
+            className="sidebar-toggle"
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            {isCollapsed ? (
+              <ArrowRight className="w-5 h-5" />
+            ) : (
+              <ArrowLeft className="w-5 h-5" />
+            )}
+          </button>
         </div>
 
         <nav className="sidebar-nav">
@@ -53,52 +68,44 @@ function DashboardLayout() {
                 key={item.name}
                 to={item.href}
                 className={`nav-item ${isActive ? "active" : ""}`}
+                title={item.name}
               >
                 <item.icon className="nav-icon" />
-                <span>{item.name}</span>
+                {!isCollapsed && <span className="nav-text">{item.name}</span>}
               </NavLink>
             );
           })}
         </nav>
 
         <div className="sidebar-footer">
-          <div className="user-info">
+          {!isCollapsed && (
+            <div className="user-info">
+              <Avatar className="h-9 w-9">
+                <AvatarImage src="" alt="User" />
+                <AvatarFallback>JD</AvatarFallback>
+              </Avatar>
+              <div className="user-details">
+                <p className="user-name">John Doe</p>
+                <p className="user-email">john@example.com</p>
+              </div>
+            </div>
+          )}
+          {isCollapsed && (
             <Avatar className="h-9 w-9">
               <AvatarImage src="" alt="User" />
               <AvatarFallback>JD</AvatarFallback>
             </Avatar>
-            <div className="user-details">
-              <p className="user-name">John Doe</p>
-              <p className="user-email">john@example.com</p>
-            </div>
-          </div>
-          <Button variant="ghost" size="icon" className="logout-btn">
-            <LogOut className="w-4 h-4" />
-          </Button>
+          )}
+          {!isCollapsed && (
+            <Button variant="ghost" size="icon" className="logout-btn">
+              <LogOut className="w-4 h-4" />
+            </Button>
+          )}
         </div>
       </aside>
 
       {/* Main Content */}
-      <div className="dashboard-main">
-        {/* Header */}
-        <header className="dashboard-header">
-          <div className="header-left">
-            <h1 className="page-title">
-              {navigation.find(
-                (n) =>
-                  location.pathname === n.href ||
-                  (n.href !== "/dashboard" &&
-                    location.pathname.startsWith(n.href)),
-              )?.name || "Dashboard"}
-            </h1>
-          </div>
-          <div className="header-right">
-            <Button variant="ghost" size="icon" className="notification-btn">
-              <Bell className="w-5 h-5" />
-              <span className="notification-badge">3</span>
-            </Button>
-          </div>
-        </header>
+      <div className={`dashboard-main ${isCollapsed ? "collapsed" : ""}`}>
 
         {/* Content */}
         <main className="dashboard-content">
