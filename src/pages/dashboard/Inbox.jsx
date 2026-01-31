@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -24,7 +25,55 @@ import {
   X,
   Music2,
   Play,
+  MessageSquare,
+  Loader2,
 } from "lucide-react";
+
+// Helper: Format relative time
+const formatRelativeTime = (dateString) => {
+  const now = new Date();
+  const date = new Date(dateString);
+  const diffMs = now - date;
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMins / 60);
+  const diffDays = Math.floor(diffHours / 24);
+
+  if (diffMins < 1) return "agora";
+  if (diffMins < 60) return `há ${diffMins} min`;
+  if (diffHours < 24) return `há ${diffHours}h`;
+  if (diffDays < 7) return `há ${diffDays}d`;
+  return date.toLocaleDateString("pt-PT", { day: "numeric", month: "short" });
+};
+
+// Skeleton Loader Component
+const Skeleton = ({ className }) => (
+  <div className={`animate-pulse bg-white/10 rounded ${className}`} />
+);
+
+// Conversation Skeleton
+const ConversationSkeleton = () => (
+  <div className="p-4 border-b border-white/5">
+    <div className="flex items-center gap-3 mb-2">
+      <Skeleton className="h-8 w-8 rounded-full" />
+      <div className="flex-1">
+        <Skeleton className="h-4 w-24 mb-1" />
+        <Skeleton className="h-3 w-16" />
+      </div>
+    </div>
+    <Skeleton className="h-3 w-full ml-11" />
+  </div>
+);
+
+// Empty State Component
+const EmptyState = ({ icon: Icon, title, description }) => (
+  <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+    <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
+      <Icon className="w-8 h-8 text-purple-500" />
+    </div>
+    <h3 className="text-lg font-semibold text-white mb-2">{title}</h3>
+    <p className="text-sm text-muted-foreground max-w-xs">{description}</p>
+  </div>
+);
 
 // Platform icons mapping
 const PlatformIcon = ({ platform }) => {
@@ -35,7 +84,7 @@ const PlatformIcon = ({ platform }) => {
   return icons[platform] || null;
 };
 
-// Mock Data
+// Mock Data with timestamps
 const conversations = [
   {
     id: 1,
@@ -43,13 +92,14 @@ const conversations = [
     role: "Visitor 1234567",
     avatar: "https://i.pravatar.cc/150?u=herry",
     lastMessage: "I recently filled out the form on your website...",
-    time: "10:44 AM",
+    time: new Date(Date.now() - 15 * 60000).toISOString(), // 15 min ago
     unread: 3,
     status: "open",
     platform: "instagram",
     tags: ["High Intent", "Pricing"],
     email: "herrybrooks@gmail.com",
     location: "Los Angeles, CA",
+    firstSeen: new Date(Date.now() - 7 * 24 * 60 * 60000).toISOString(), // 7 days ago
   },
   {
     id: 2,
@@ -57,13 +107,14 @@ const conversations = [
     role: "Customer",
     avatar: "https://i.pravatar.cc/150?u=jonas",
     lastMessage: "I believe a subtle blue or green would be...",
-    time: "Jul 2024",
+    time: new Date(Date.now() - 3 * 60 * 60000).toISOString(), // 3 hours ago
     unread: 1,
     status: "open",
     platform: "tiktok",
     tags: ["Beta"],
     email: "jonas@smith.com",
     location: "New York, NY",
+    firstSeen: new Date(Date.now() - 30 * 24 * 60 * 60000).toISOString(), // 30 days ago
   },
   {
     id: 3,
@@ -71,13 +122,14 @@ const conversations = [
     role: "Customer",
     avatar: "https://i.pravatar.cc/150?u=sahid",
     lastMessage: "Ready your last final project",
-    time: "Jul 2024",
+    time: new Date(Date.now() - 2 * 24 * 60 * 60000).toISOString(), // 2 days ago
     unread: 0,
     status: "closed",
     platform: "instagram",
     tags: [],
     email: "sahid@ajmol.com",
     location: "London, UK",
+    firstSeen: new Date(Date.now() - 60 * 24 * 60 * 60000).toISOString(), // 60 days ago
   },
 ];
 
@@ -125,9 +177,16 @@ function Inbox() {
   const [activeChannel, setActiveChannel] = useState(
     selectedConversation.platform,
   );
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Simulate loading state
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 1000);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Sync activeChannel with selected conversation's platform
-  React.useEffect(() => {
+  useEffect(() => {
     setActiveChannel(selectedConversation.platform);
   }, [selectedConversation]);
 
@@ -135,6 +194,13 @@ function Inbox() {
     { id: "instagram", label: "Instagram", icon: Instagram },
     { id: "tiktok", label: "TikTok", icon: Music2 },
   ];
+
+  // Filter conversations based on search
+  const filteredConversations = conversations.filter(
+    (convo) =>
+      convo.user.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      convo.lastMessage.toLowerCase().includes(searchQuery.toLowerCase()),
+  );
 
   return (
     <div className="inbox-container flex h-screen overflow-hidden rounded-none border-0 bg-black/20 shadow-sm backdrop-blur-sm -m-8">
@@ -198,51 +264,72 @@ function Inbox() {
         </div>
 
         <div className="flex-1 overflow-y-auto">
-          {conversations.map((convo) => (
-            <div
-              key={convo.id}
-              onClick={() => setSelectedConversation(convo)}
-              className={`
-                p-4 border-b border-white/5 cursor-pointer transition-colors hover:bg-white/5
-                ${selectedConversation.id === convo.id ? "bg-white/10 border-l-4 border-l-primary" : "border-l-4 border-l-transparent"}
-              `}
-            >
-              <div className="flex justify-between items-start mb-1">
-                <div className="flex items-center gap-2 overflow-hidden">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={convo.avatar} />
-                    <AvatarFallback>{convo.user[0]}</AvatarFallback>
-                  </Avatar>
-                  <span
-                    className={`font-medium truncate ${convo.unread > 0 ? "text-white" : "text-muted-foreground"}`}
-                  >
-                    {convo.user}
+          {isLoading ? (
+            // Loading skeletons
+            <>
+              <ConversationSkeleton />
+              <ConversationSkeleton />
+              <ConversationSkeleton />
+            </>
+          ) : filteredConversations.length === 0 ? (
+            // Empty state
+            <EmptyState
+              icon={MessageSquare}
+              title="No conversations found"
+              description={
+                searchQuery
+                  ? "Try a different search term"
+                  : "Start a new conversation to get started"
+              }
+            />
+          ) : (
+            // Conversation list
+            filteredConversations.map((convo) => (
+              <div
+                key={convo.id}
+                onClick={() => setSelectedConversation(convo)}
+                className={`
+                  p-4 border-b border-white/5 cursor-pointer transition-colors hover:bg-white/5
+                  ${selectedConversation.id === convo.id ? "bg-white/10" : ""}
+                `}
+              >
+                <div className="flex justify-between items-start mb-1">
+                  <div className="flex items-center gap-2 overflow-hidden">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={convo.avatar} />
+                      <AvatarFallback>{convo.user[0]}</AvatarFallback>
+                    </Avatar>
+                    <span
+                      className={`font-medium truncate ${convo.unread > 0 ? "text-white" : "text-muted-foreground"}`}
+                    >
+                      {convo.user}
+                    </span>
+                    {/* Platform Indicator - Always show */}
+                    <PlatformIcon platform={convo.platform} />
+                  </div>
+                  <span className="text-xs text-muted-foreground whitespace-nowrap">
+                    {formatRelativeTime(convo.time)}
                   </span>
-                  {/* Platform Indicator - Always show */}
-                  <PlatformIcon platform={convo.platform} />
                 </div>
-                <span className="text-xs text-muted-foreground whitespace-nowrap">
-                  {convo.time}
-                </span>
-              </div>
 
-              <div className="pl-10 flex items-center gap-2">
-                <p
-                  className={`text-sm line-clamp-1 ${convo.unread > 0 ? "text-gray-300 font-medium" : "text-muted-foreground"}`}
-                >
-                  {convo.lastMessage}
-                </p>
-                {convo.unread > 0 && (
-                  <Badge
-                    variant="default"
-                    className="h-5 px-1.5 bg-purple-500 text-primary-foreground"
+                <div className="pl-10 flex items-center gap-2">
+                  <p
+                    className={`text-sm line-clamp-1 ${convo.unread > 0 ? "text-gray-300 font-medium" : "text-muted-foreground"}`}
                   >
-                    {convo.unread}
-                  </Badge>
-                )}
+                    {convo.lastMessage}
+                  </p>
+                  {convo.unread > 0 && (
+                    <Badge
+                      variant="default"
+                      className="h-5 px-1.5 bg-purple-500 text-primary-foreground"
+                    >
+                      {convo.unread}
+                    </Badge>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </div>
 
@@ -271,6 +358,11 @@ function Inbox() {
               variant="outline"
               size="sm"
               className="h-8 border-white/20 bg-transparent text-muted-foreground hover:text-white hover:bg-white/10"
+              onClick={() => {
+                toast.success("Conversation marked as done", {
+                  description: `${selectedConversation.user} has been resolved`,
+                });
+              }}
             >
               Mark as Done
             </Button>
@@ -422,7 +514,17 @@ function Inbox() {
               </div>
               <Button
                 size="sm"
-                className="h-8 gap-2 bg-primary hover:bg-primary/90 text-primary-foreground"
+                className="h-8 gap-2 bg-purple-500 hover:bg-purple-600 text-white"
+                onClick={() => {
+                  if (inputText.trim()) {
+                    toast.success("Message sent!", {
+                      description: `Sent via ${selectedConversation.platform}`,
+                    });
+                    setInputText("");
+                  } else {
+                    toast.error("Cannot send empty message");
+                  }
+                }}
               >
                 Send <Send className="h-3.5 w-3.5" />
               </Button>
@@ -463,7 +565,11 @@ function Inbox() {
             label="Location"
             value={selectedConversation.location}
           />
-          <InfoItem icon={Clock} label="First seen" value="Jul 07, 2024" />
+          <InfoItem
+            icon={Clock}
+            label="First seen"
+            value={formatRelativeTime(selectedConversation.firstSeen)}
+          />
         </div>
 
         {/* Tags */}
@@ -492,16 +598,21 @@ function Inbox() {
         {/* AI Suggestions - Coming Soon */}
         <div className="p-4 flex-1">
           <div className="flex items-center gap-2 mb-3">
-            <Sparkles className="w-4 h-4 text-purple-400" />
-            <span className="text-sm font-medium text-white">
+            <Sparkles className="w-4 h-4 text-purple-500" />
+            <span className="text-sm font-semibold text-white">
               AI Suggestions
             </span>
+            <Badge className="text-[10px] px-1.5 py-0 bg-purple-500/20 text-purple-400 border-purple-500/30">
+              Beta
+            </Badge>
           </div>
-          <div className="bg-white/5 rounded-lg border border-white/10 border-dashed p-6 text-center">
-            <Sparkles className="w-8 h-8 text-purple-400/50 mx-auto mb-2" />
-            <p className="text-sm text-muted-foreground">Coming Soon</p>
-            <p className="text-xs text-muted-foreground/70 mt-1">
-              AI-powered response suggestions
+          <div className="bg-gradient-to-br from-purple-500/10 to-transparent rounded-xl border border-purple-500/20 p-6 text-center">
+            <div className="w-12 h-12 rounded-full bg-purple-500/20 flex items-center justify-center mx-auto mb-3">
+              <Sparkles className="w-6 h-6 text-purple-500" />
+            </div>
+            <p className="text-sm font-medium text-white mb-1">Coming Soon</p>
+            <p className="text-xs text-muted-foreground">
+              AI-powered response suggestions to help you reply faster
             </p>
           </div>
         </div>

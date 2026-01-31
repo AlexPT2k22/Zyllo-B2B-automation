@@ -15,6 +15,19 @@ html {
   --accent-color: #a855f7;
   --grid-color: rgba(255, 255, 255, 0.03);
   --radius: 0.625rem;
+
+  /* Zyllo Brand Colors */
+  --zyllo-purple: #a855f7;
+  --zyllo-purple-hover: #9333ea;
+  --zyllo-purple-light: rgba(168, 85, 247, 0.2);
+  --zyllo-bg-dark: #0a0a0f;
+  --zyllo-bg-card: rgba(10, 10, 15, 0.6);
+  --zyllo-border: rgba(255, 255, 255, 0.1);
+  --zyllo-text-muted: #94a3b8;
+  --zyllo-success: #22c55e;
+  --zyllo-warning: #eab308;
+  --zyllo-error: #ef4444;
+
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -46,6 +59,30 @@ html {
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+}
+
+/* Custom Scrollbar - Dark Theme */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(168, 85, 247, 0.3) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: rgba(168, 85, 247, 0.3);
+  border-radius: 3px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(168, 85, 247, 0.5);
 }
 
 * {
