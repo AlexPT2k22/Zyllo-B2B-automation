@@ -3,6 +3,7 @@
  *
  * Generic node renderer that reads visual properties from node definition.
  * Zyllo Style: Glassmorphism Card with Execution State
+ * Supports drag-to-connect from output ports
  */
 
 import React from "react";
@@ -60,11 +61,12 @@ export function AutomationNode({
   node,
   isSelected,
   isConnecting,
+  isConnectionTarget,
   executionState = "idle",
   onSelect,
   onDelete,
-  onStartConnection,
-  onEndConnection,
+  onConnectionDragStart,
+  onConnectionDragEnd,
 }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({ id: node.id });
@@ -97,7 +99,6 @@ export function AutomationNode({
   const hasInputs =
     nodeDefinition.inputs?.length > 0 || nodeDefinition.type !== "trigger";
 
-  // Get execution indicator
   const getExecutionIndicator = () => {
     switch (executionState) {
       case "running":
@@ -111,9 +112,30 @@ export function AutomationNode({
     }
   };
 
+  // Handle output port pointer down - start connection drag (use pointer events to stop dnd-kit)
+  const handleOutputPointerDown = (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+
+    // Get the center position of the output port
+    const startPos = {
+      x: node.x + 140, // Center of node (280/2)
+      y: node.y + 110, // Bottom of node approximately
+    };
+
+    onConnectionDragStart?.(node.id, startPos, e);
+  };
+
+  // Handle input port mouse up - end connection on this node
+  const handleInputMouseUp = (e) => {
+    e.stopPropagation();
+    onConnectionDragEnd?.(node.id);
+  };
+
   return (
     <div
       ref={setNodeRef}
+      data-node-id={node.id}
       style={{
         position: "absolute",
         left: node.x,
@@ -143,11 +165,8 @@ export function AutomationNode({
         className={`
           relative w-[280px] rounded-2xl overflow-visible cursor-grab active:cursor-grabbing
           ${executionState === "running" ? "animate-pulse" : ""}
-          ${
-            isSelected
-              ? "bg-[#13131a] ring-1"
-              : "bg-[#0d0d14] border border-white/5 hover:border-white/10"
-          }
+          ${isSelected ? "bg-[#13131a] ring-1" : "bg-[#0d0d14] border border-white/5 hover:border-white/10"}
+          ${isConnectionTarget ? "ring-2 ring-purple-500/50" : ""}
         `}
         style={{
           boxShadow:
@@ -172,8 +191,6 @@ export function AutomationNode({
         <div className="flex items-center gap-2 p-3 relative z-10">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-inner relative">
             <Icon className="w-5 h-5" style={{ color: accentColor }} />
-
-            {/* Execution state indicator overlay */}
             {executionState !== "idle" && (
               <div className="absolute -bottom-1 -right-1 p-0.5 bg-[#0d0d14] rounded-full">
                 {getExecutionIndicator()}
@@ -219,44 +236,47 @@ export function AutomationNode({
           <Trash2 className="w-3.5 h-3.5" />
         </button>
 
-        {/* Connection Points */}
+        {/* Input Port (Top) - Drop target for connections */}
         {hasInputs && (
-          <div className="absolute -top-[13px] left-1/2 -translate-x-1/2 z-20">
-            <button
-              onPointerDown={(e) => e.stopPropagation()}
-              onClick={(e) => {
-                e.stopPropagation();
-                onEndConnection(node.id);
-              }}
+          <div
+            className="absolute -top-[13px] left-1/2 -translate-x-1/2 z-20"
+            data-input-port={node.id}
+          >
+            <div
+              onMouseUp={handleInputMouseUp}
               className={`
                 group/port w-7 h-7 rounded-full flex items-center justify-center 
-                transition-all duration-200 shadow-lg relative cursor-crosshair
+                transition-all duration-200 shadow-lg relative
                 ${
                   isConnecting
-                    ? "border-white"
-                    : "border-white hover:border-white"
+                    ? "cursor-crosshair scale-125 bg-purple-500/20"
+                    : "cursor-default"
                 }
               `}
             >
               <div
-                className={`w-2.5 h-2.5 rounded-full transition-all duration-200 ${isConnecting ? "bg-white" : "bg-white transition-colors duration-200 group-hover/port:bg-purple-400"}`}
+                className={`
+                  w-2.5 h-2.5 rounded-full transition-all duration-200 
+                  ${
+                    isConnecting
+                      ? "bg-purple-400 scale-125 shadow-[0_0_10px_rgba(168,85,247,0.5)]"
+                      : "bg-white/60 group-hover/port:bg-white"
+                  }
+                `}
               />
-            </button>
+            </div>
           </div>
         )}
 
+        {/* Output Port (Bottom) - Drag source for connections */}
         {hasOutputs && (
           <div className="absolute -bottom-[13px] left-1/2 -translate-x-1/2 z-20">
-            <button
-              onPointerDown={(e) => e.stopPropagation()}
-              onClick={(e) => {
-                e.stopPropagation();
-                onStartConnection(node.id);
-              }}
+            <div
+              onPointerDown={handleOutputPointerDown}
               className="group/port w-7 h-7 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 shadow-lg relative cursor-crosshair"
             >
               <div className="w-2.5 h-2.5 rounded-full bg-white transition-colors duration-200 group-hover/port:bg-purple-400" />
-            </button>
+            </div>
           </div>
         )}
       </div>

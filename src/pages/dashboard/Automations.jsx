@@ -34,17 +34,32 @@ import { AutomationNode } from "@/components/automation/AutomationNode";
 import { ExecutionPanel } from "@/components/automation/ExecutionPanel";
 import { TestModal } from "@/components/automation/TestModal";
 
-// Connection Arrow Component
-function ConnectionArrow({ from, to, nodes }) {
+// Connection Arrow Component - now accepts dragOffset for real-time updates
+function ConnectionArrow({ from, to, nodes, dragOffset }) {
   const fromNode = nodes.find((n) => n.id === from);
   const toNode = nodes.find((n) => n.id === to);
 
   if (!fromNode || !toNode) return null;
 
-  const startX = fromNode.x + 140;
-  const startY = fromNode.y + 110;
-  const endX = toNode.x + 140;
-  const endY = toNode.y - 5;
+  // Apply drag offset to dragging node
+  let fromX = fromNode.x;
+  let fromY = fromNode.y;
+  let toX = toNode.x;
+  let toY = toNode.y;
+
+  if (dragOffset?.nodeId === from) {
+    fromX += dragOffset.x;
+    fromY += dragOffset.y;
+  }
+  if (dragOffset?.nodeId === to) {
+    toX += dragOffset.x;
+    toY += dragOffset.y;
+  }
+
+  const startX = fromX + 140;
+  const startY = fromY + 110;
+  const endX = toX + 140;
+  const endY = toY - 5;
 
   const midY = (startY + endY) / 2;
 
@@ -95,9 +110,12 @@ function Automations() {
   // UI state
   const [showNodePicker, setShowNodePicker] = useState(false);
   const [selectedNode, setSelectedNode] = useState(null);
-  const [connectingFrom, setConnectingFrom] = useState(null);
   const [showTestModal, setShowTestModal] = useState(false);
   const [showExecutionPanel, setShowExecutionPanel] = useState(false);
+  const [activeDrag, setActiveDrag] = useState(null); // Track active drag for live arrow updates
+
+  // Connection drag state
+  const [connectionDrag, setConnectionDrag] = useState(null); // { fromNodeId, startPos, currentPos }
 
   // Workflow store
   const {
@@ -126,6 +144,7 @@ function Automations() {
   const handleDragEnd = useCallback(
     (event) => {
       const { active, delta } = event;
+      setActiveDrag(null); // Clear drag state
       if (!active) return;
 
       const node = nodes.find((n) => n.id === active.id);
@@ -135,6 +154,14 @@ function Automations() {
     },
     [nodes, moveNode],
   );
+
+  // Handle node drag move for real-time arrow updates
+  const handleDragMove = useCallback((event) => {
+    const { active, delta } = event;
+    if (active) {
+      setActiveDrag({ nodeId: active.id, x: delta.x, y: delta.y });
+    }
+  }, []);
 
   // Handle canvas panning
   const handleMouseDown = useCallback(
@@ -151,7 +178,7 @@ function Automations() {
     [viewport],
   );
 
-  const handleMouseMove = useCallback(
+  const handleCanvasMouseMove = useCallback(
     (e) => {
       if (isPanning) {
         setViewport((prev) => ({
@@ -166,6 +193,7 @@ function Automations() {
 
   const handleMouseUp = useCallback(() => {
     setIsPanning(false);
+    // Connection cancelation is handled by global mouseup listener
   }, []);
 
   // Handle drop from Node Picker
@@ -192,23 +220,53 @@ function Automations() {
     e.dataTransfer.dropEffect = "copy";
   };
 
-  // Connection handling
-  const handleStartConnection = (nodeId) => {
-    setConnectingFrom(nodeId);
-    toast.info("Click on another node to connect");
-  };
+  // Connection drag handling (drag-to-connect)
+  const handleConnectionDragStart = useCallback(
+    (nodeId, startPos, e) => {
+      setConnectionDrag({
+        fromNodeId: nodeId,
+        startPos,
+        currentPos: startPos,
+      });
 
-  const handleEndConnection = (nodeId) => {
-    if (connectingFrom && connectingFrom !== nodeId) {
-      const success = addConnection(connectingFrom, nodeId);
-      if (success) {
-        toast.success("Nodes connected!");
-      } else {
-        toast.info("Connection already exists");
+      // Add global mouse listeners
+      const handleGlobalMouseMove = (e) => {
+        const rect = canvasRef.current?.getBoundingClientRect();
+        if (rect) {
+          const x = (e.clientX - rect.left - viewport.x) / viewport.scale;
+          const y = (e.clientY - rect.top - viewport.y) / viewport.scale;
+          setConnectionDrag((prev) =>
+            prev ? { ...prev, currentPos: { x, y } } : null,
+          );
+        }
+      };
+
+      const handleGlobalMouseUp = () => {
+        setConnectionDrag(null);
+        window.removeEventListener("mousemove", handleGlobalMouseMove);
+        window.removeEventListener("mouseup", handleGlobalMouseUp);
+      };
+
+      window.addEventListener("mousemove", handleGlobalMouseMove);
+      window.addEventListener("mouseup", handleGlobalMouseUp);
+    },
+    [viewport],
+  );
+
+  const handleConnectionDragEnd = useCallback(
+    (targetNodeId) => {
+      if (connectionDrag && connectionDrag.fromNodeId !== targetNodeId) {
+        const success = addConnection(connectionDrag.fromNodeId, targetNodeId);
+        if (success) {
+          toast.success("Nodes connected!");
+        } else {
+          toast.info("Connection already exists");
+        }
       }
-    }
-    setConnectingFrom(null);
-  };
+      setConnectionDrag(null);
+    },
+    [connectionDrag, addConnection],
+  );
 
   // Zoom controls
   const zoomIn = () =>
@@ -357,16 +415,9 @@ function Automations() {
             </div>
           )}
 
-          {connectingFrom && (
+          {connectionDrag && (
             <div className="flex items-center gap-2 text-sm text-purple-400 animate-pulse">
-              <span>Click a node to connect</span>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => setConnectingFrom(null)}
-              >
-                Cancel
-              </Button>
+              <span>Drag to a node to connect</span>
             </div>
           )}
         </div>
@@ -468,7 +519,7 @@ function Automations() {
           ref={canvasRef}
           className={`flex-1 relative overflow-hidden ${isPanning ? "cursor-grabbing" : "cursor-grab"}`}
           onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
+          onMouseMove={handleCanvasMouseMove}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
           onDrop={handleCanvasDrop}
@@ -490,7 +541,7 @@ function Automations() {
           />
 
           {/* Viewport Container */}
-          <DndContext onDragEnd={handleDragEnd}>
+          <DndContext onDragEnd={handleDragEnd} onDragMove={handleDragMove}>
             <div
               className="absolute"
               style={{
@@ -509,8 +560,39 @@ function Automations() {
                     from={conn.from}
                     to={conn.to}
                     nodes={nodes}
+                    dragOffset={activeDrag}
                   />
                 ))}
+
+                {/* Preview arrow during connection drag */}
+                {connectionDrag && (
+                  <g>
+                    <defs>
+                      <marker
+                        id="preview-arrowhead"
+                        markerWidth="10"
+                        markerHeight="7"
+                        refX="9"
+                        refY="3.5"
+                        orient="auto"
+                      >
+                        <polygon points="0 0, 10 3.5, 0 7" fill="#a855f7" />
+                      </marker>
+                    </defs>
+                    <path
+                      d={`M ${connectionDrag.startPos.x} ${connectionDrag.startPos.y} 
+                         C ${connectionDrag.startPos.x} ${(connectionDrag.startPos.y + connectionDrag.currentPos.y) / 2}, 
+                           ${connectionDrag.currentPos.x} ${(connectionDrag.startPos.y + connectionDrag.currentPos.y) / 2}, 
+                           ${connectionDrag.currentPos.x} ${connectionDrag.currentPos.y}`}
+                      stroke="#a855f7"
+                      strokeWidth="2"
+                      strokeDasharray="5,5"
+                      fill="none"
+                      markerEnd="url(#preview-arrowhead)"
+                      className="animate-pulse"
+                    />
+                  </g>
+                )}
               </svg>
 
               {/* Nodes */}
@@ -519,12 +601,16 @@ function Automations() {
                   key={node.id}
                   node={node}
                   isSelected={selectedNode?.id === node.id}
-                  isConnecting={connectingFrom !== null}
+                  isConnecting={connectionDrag !== null}
+                  isConnectionTarget={
+                    connectionDrag !== null &&
+                    connectionDrag.fromNodeId !== node.id
+                  }
                   executionState={nodeStates[node.id] || "idle"}
                   onSelect={handleSelectNode}
                   onDelete={handleDeleteNode}
-                  onStartConnection={handleStartConnection}
-                  onEndConnection={handleEndConnection}
+                  onConnectionDragStart={handleConnectionDragStart}
+                  onConnectionDragEnd={handleConnectionDragEnd}
                 />
               ))}
             </div>
