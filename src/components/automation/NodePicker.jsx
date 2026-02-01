@@ -66,12 +66,9 @@ function NodePickerItem({ node, onSelect, onDragStart }) {
       <div
         className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0
           bg-opacity-10 transition-colors duration-200"
-        style={{
-          backgroundColor: `${category.color}15`,
-        }}
       >
         <Icon
-          className="w-5 h-5 transition-transform group-hover:scale-110 duration-200"
+          className="w-5 h-5"
           style={{ color: category.color }}
         />
       </div>
@@ -80,7 +77,7 @@ function NodePickerItem({ node, onSelect, onDragStart }) {
         <p className="text-sm font-semibold text-white/90 group-hover:text-white truncate">
           {node.name}
         </p>
-        <p className="text-xs text-muted-foreground truncate opacity-80 group-hover:opacity-100">
+        <p className="text-xs text-muted-foreground opacity-80 group-hover:opacity-100">
           {node.description}
         </p>
       </div>

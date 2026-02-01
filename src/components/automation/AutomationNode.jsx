@@ -102,14 +102,18 @@ export function AutomationNode({
         touchAction: "none",
       }}
       className="group"
-      onClick={(e) => {
+      // Apply drag listeners to the entire container
+      {...attributes}
+      {...listeners}
+      onDoubleClick={(e) => {
+        // Prevent double click from triggering drag issues if any
         e.stopPropagation();
         onSelect(node);
       }}
     >
       <div
         className={`
-          relative w-[280px] rounded-2xl overflow-visible transition-all duration-300
+          relative w-[280px] rounded-2xl overflow-visible transition-all duration-300 cursor-grab active:cursor-grabbing
           ${
             isSelected
               ? "bg-[#13131a] shadow-[0_20px_60px_-10px_rgba(0,0,0,0.5)] ring-1"
@@ -150,47 +154,41 @@ export function AutomationNode({
               {nodeDefinition.name}
             </h3>
           </div>
-
-          <div
-            {...attributes}
-            {...listeners}
-            className="p-1 rounded cursor-grab active:cursor-grabbing text-white/10 hover:text-white/40 transition-colors"
-          >
-            <GripVertical className="w-5 h-5" />
-          </div>
         </div>
 
         {/* Content */}
         <div className="px-3 pb-3 relative z-10">
           <div className="p-2.5 bg-black/20 rounded-lg border border-white/5">
-            <p className="text-xs text-white/70 font-mono leading-relaxed truncate">
+            <p className="text-xs text-white/70 font-mono leading-relaxed">
               {getDisplayContent()}
             </p>
           </div>
         </div>
 
-        {/* Delete Button (Floating) */}
+        {/* Delete Button (Floating) - Stop propagation to prevent drag */}
         <button
+          onPointerDown={(e) => e.stopPropagation()}
           onClick={(e) => {
             e.stopPropagation();
             onDelete(node.id);
           }}
-          className="absolute -top-2 -right-2 p-1.5 rounded-full bg-[#1a1a20] border border-white/10 text-muted-foreground hover:text-red-400 hover:border-red-500/30 opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-lg scale-75 group-hover:scale-100 z-20"
+          className="absolute -top-2 -right-2 p-1.5 rounded-full bg-[#1a1a20] border border-white/10 text-muted-foreground hover:text-red-400 hover:border-red-500/30 opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-lg scale-75 group-hover:scale-100 z-20 cursor-pointer"
         >
           <Trash2 className="w-3.5 h-3.5" />
         </button>
 
-        {/* Connection Points */}
+        {/* Connection Points - Stop propagation to prevent drag */}
         {hasInputs && (
           <div className="absolute -top-[13px] left-1/2 -translate-x-1/2 z-20">
             <button
+              onPointerDown={(e) => e.stopPropagation()}
               onClick={(e) => {
                 e.stopPropagation();
                 onEndConnection(node.id);
               }}
               className={`
                 group/port w-7 h-7 rounded-full bg-[#0d0d14] border flex items-center justify-center 
-                transition-all duration-200 shadow-lg relative
+                transition-all duration-200 shadow-lg relative cursor-crosshair
                 ${
                   isConnecting
                     ? "border-white scale-110 shadow-[0_0_15px_rgba(255,255,255,0.3)]"
@@ -201,9 +199,6 @@ export function AutomationNode({
               <div
                 className={`w-2.5 h-2.5 rounded-full transition-all duration-200 ${isConnecting ? "bg-white" : "bg-white/40 group-hover/port:bg-white"}`}
               />
-              <span className="absolute -top-6 text-[10px] font-medium text-white bg-black/80 px-2 py-0.5 rounded opacity-0 group-hover/port:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                Input
-              </span>
             </button>
           </div>
         )}
@@ -211,17 +206,15 @@ export function AutomationNode({
         {hasOutputs && (
           <div className="absolute -bottom-[13px] left-1/2 -translate-x-1/2 z-20">
             <button
+              onPointerDown={(e) => e.stopPropagation()}
               onClick={(e) => {
                 e.stopPropagation();
                 onStartConnection(node.id);
               }}
-              className="group/port w-7 h-7 rounded-full bg-[#0d0d14] border border-white/20 hover:border-[var(--color)] flex items-center justify-center transition-all duration-200 hover:scale-110 shadow-lg relative"
+              className="group/port w-7 h-7 rounded-full bg-[#0d0d14] border border-white/20 hover:border-[var(--color)] flex items-center justify-center transition-all duration-200 hover:scale-110 shadow-lg relative cursor-crosshair"
               style={{ "--color": accentColor }}
             >
               <div className="w-2.5 h-2.5 rounded-full bg-white/40 transition-colors duration-200 group-hover/port:bg-[var(--color)]" />
-              <span className="absolute -bottom-6 text-[10px] font-medium text-white bg-black/80 px-2 py-0.5 rounded opacity-0 group-hover/port:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                Output
-              </span>
             </button>
           </div>
         )}

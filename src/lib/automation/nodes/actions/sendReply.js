@@ -46,7 +46,7 @@ export default {
       type: PROPERTY_TYPES.KEYWORDS,
       label: "Quick Replies",
       description: "Add quick reply buttons (one per line)",
-      placeholder: "Yes\nNo\nTell me more",
+      placeholder: "Yes, No, Tell me more",
     },
   ],
 
