@@ -211,10 +211,10 @@ export function AutomationNode({
                 e.stopPropagation();
                 onStartConnection(node.id);
               }}
-              className="group/port w-7 h-7 rounded-full bg-[#0d0d14] border border-white/20 hover:border-[var(--color)] flex items-center justify-center transition-all duration-200 hover:scale-110 shadow-lg relative cursor-crosshair"
+              className="group/port w-7 h-7 rounded-full bg-[#0d0d14] border border-white/20 hover:border(--color) flex items-center justify-center transition-all duration-200 hover:scale-110 shadow-lg relative cursor-crosshair"
               style={{ "--color": accentColor }}
             >
-              <div className="w-2.5 h-2.5 rounded-full bg-white/40 transition-colors duration-200 group-hover/port:bg-[var(--color)]" />
+              <div className="w-2.5 h-2.5 rounded-full bg-white/40 transition-colors duration-200 group-hover/port:bg-(--color)" />
             </button>
           </div>
         )}

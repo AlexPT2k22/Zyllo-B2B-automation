@@ -263,7 +263,7 @@ export function NodePicker({ onSelectNode, onClose, isOpen }) {
         </div>
 
         {/* Footer Gradient */}
-        <div className="h-4 bg-gradient-to-t from-[#0d0d14]/50 to-transparent pointer-events-none shrink-0" />
+        <div className="h-4 bg-linear-to-t from-[#0d0d14]/50 to-transparent pointer-events-none shrink-0" />
       </div>
     </div>
   );

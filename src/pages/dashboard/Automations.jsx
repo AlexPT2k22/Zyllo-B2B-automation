@@ -303,7 +303,7 @@ function Automations() {
             className={`h-8 ${
               showNodePicker
                 ? "bg-purple-500 hover:bg-purple-600 text-white"
-                : "border-purple-500/30 bg-purple-500/10 text-purple-400 hover:bg-purple-500/20"
+                : "border-purple-500/30 bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 hover:text-purple-500"
             }`}
             onClick={() => setShowNodePicker(!showNodePicker)}
           >
@@ -313,7 +313,7 @@ function Automations() {
 
           {connectingFrom && (
             <div className="flex items-center gap-2 text-sm text-purple-400 animate-pulse">
-              <span>Connecting... Click a node</span>
+              <span>Click a node to connect</span>
               <Button
                 size="sm"
                 variant="ghost"
@@ -360,11 +360,11 @@ function Automations() {
           <div className="h-6 w-px bg-white/10" />
 
           {/* Action Buttons */}
-          <Button size="sm" variant="outline" className="h-8 border-white/10">
+          <Button size="sm" variant="outline" className="h-8 border-white/10 bg-transparent hover:bg-transparent hover:text-white/50">
             <Save className="w-3.5 h-3.5 mr-1" />
             Save
           </Button>
-          <Button size="sm" className="h-8 bg-green-600 hover:bg-green-700">
+          <Button size="sm" className="h-8 bg-transparent hover:bg-transparent hover:text-green-500/50 text-green-500">
             <Play className="w-3.5 h-3.5 mr-1" />
             Test
           </Button>
