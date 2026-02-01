@@ -169,11 +169,8 @@ export function AutomationNode({
         />
 
         {/* Header */}
-        <div className="flex items-center gap-3 p-3 relative z-10">
-          <div
-            className="w-10 h-10 rounded-xl flex items-center justify-center shadow-inner relative"
-            style={{ backgroundColor: `${accentColor}15` }}
-          >
+        <div className="flex items-center gap-2 p-3 relative z-10">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-inner relative">
             <Icon className="w-5 h-5" style={{ color: accentColor }} />
 
             {/* Execution state indicator overlay */}
@@ -232,17 +229,17 @@ export function AutomationNode({
                 onEndConnection(node.id);
               }}
               className={`
-                group/port w-7 h-7 rounded-full bg-[#0d0d14] border flex items-center justify-center 
+                group/port w-7 h-7 rounded-full flex items-center justify-center 
                 transition-all duration-200 shadow-lg relative cursor-crosshair
                 ${
                   isConnecting
-                    ? "border-white scale-110 shadow-[0_0_15px_rgba(255,255,255,0.3)]"
-                    : "border-white/20 hover:border-white hover:scale-110"
+                    ? "border-white"
+                    : "border-white hover:border-white"
                 }
               `}
             >
               <div
-                className={`w-2.5 h-2.5 rounded-full transition-all duration-200 ${isConnecting ? "bg-white" : "bg-white/40 group-hover/port:bg-white"}`}
+                className={`w-2.5 h-2.5 rounded-full transition-all duration-200 ${isConnecting ? "bg-white" : "bg-white transition-colors duration-200 group-hover/port:bg-purple-400"}`}
               />
             </button>
           </div>
@@ -256,9 +253,9 @@ export function AutomationNode({
                 e.stopPropagation();
                 onStartConnection(node.id);
               }}
-              className="group/port w-7 h-7 rounded-full bg-[#0d0d14] border border-white/20 hover:border-purple-400 flex items-center justify-center transition-all duration-200 hover:scale-110 shadow-lg relative cursor-crosshair"
+              className="group/port w-7 h-7 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 shadow-lg relative cursor-crosshair"
             >
-              <div className="w-2.5 h-2.5 rounded-full bg-white/40 transition-colors duration-200 group-hover/port:bg-purple-400" />
+              <div className="w-2.5 h-2.5 rounded-full bg-white transition-colors duration-200 group-hover/port:bg-purple-400" />
             </button>
           </div>
         )}

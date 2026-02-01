@@ -2,6 +2,7 @@
  * Execution Panel Component
  *
  * Shows execution logs during workflow testing.
+ * Zyllo Style: Floating Glass Panel
  */
 
 import React from "react";
@@ -16,6 +17,8 @@ import {
   Copy,
   Trash2,
   Terminal,
+  Activity,
+  ArrowRight,
 } from "lucide-react";
 
 const statusConfig = {
@@ -45,12 +48,11 @@ function LogEntry({ log }) {
   const isRunning = log.status === "running";
 
   return (
-    <div
-      className="flex items-start gap-3 p-3 rounded-xl bg-white/5 border border-white/5 animate-in slide-in-from-left-2 duration-200"
-      style={{ borderLeftColor: config.color, borderLeftWidth: "2px" }}
-    >
+    <div className="group relative flex items-start gap-3 p-3 rounded-xl bg-black/20 hover:bg-black/30 border border-white/5 transition-all duration-200">
+      {/* Status Bar */}
+
       <div
-        className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5"
+        className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ml-1.5"
         style={{ backgroundColor: config.bg }}
       >
         <Icon
@@ -61,16 +63,28 @@ function LogEntry({ log }) {
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between gap-2">
-          <span className="text-sm font-medium text-white truncate">
+          <span className="text-sm font-semibold text-white/90 truncate">
             {log.nodeName}
           </span>
-          <span className="text-[10px] text-muted-foreground font-mono shrink-0">
-            {new Date(log.timestamp).toLocaleTimeString()}
+          <span className="text-[10px] text-muted-foreground font-mono shrink-0 opacity-60">
+            {new Date(log.timestamp).toLocaleTimeString([], {
+              hour12: false,
+              hour: "2-digit",
+              minute: "2-digit",
+              second: "2-digit",
+            })}
           </span>
         </div>
-        <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+        <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed truncate group-hover:whitespace-normal group-hover:text-white/70 transition-colors">
           {log.message}
         </p>
+
+        {log.result && (
+          <div className="mt-2 text-[10px] font-mono p-2 rounded bg-black/40 border border-white/5 text-emerald-400 overflow-hidden">
+            {JSON.stringify(log.result).substring(0, 50)}
+            {JSON.stringify(log.result).length > 50 && "..."}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -90,28 +104,45 @@ export function ExecutionPanel({ isOpen, onClose }) {
   };
 
   const stateConfig = {
-    idle: { label: "Ready", color: "text-muted-foreground" },
-    running: { label: "Executing...", color: "text-purple-400" },
-    success: { label: "Completed", color: "text-green-400" },
-    error: { label: "Failed", color: "text-red-400" },
+    idle: {
+      label: "Ready",
+      color: "text-muted-foreground",
+      dot: "bg-white/20",
+    },
+    running: {
+      label: "Executing...",
+      color: "text-purple-400",
+      dot: "bg-purple-500 animate-pulse",
+    },
+    success: {
+      label: "Completed",
+      color: "text-green-400",
+      dot: "bg-green-500",
+    },
+    error: { label: "Failed", color: "text-red-400", dot: "bg-red-500" },
   };
 
   const state = stateConfig[executionState] || stateConfig.idle;
 
   return (
-    <div className="absolute bottom-6 right-6 w-96 max-h-[60vh] z-50 flex flex-col pointer-events-auto animate-in slide-in-from-bottom-4 duration-300">
+    <div className="absolute bottom-6 right-6 w-96 max-h-[500px] z-50 flex flex-col pointer-events-auto animate-in slide-in-from-bottom-4 duration-300">
+      {/* Glass Container */}
       <div className="flex-1 flex flex-col bg-[#0d0d14]/90 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden ring-1 ring-white/5">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-white/5 bg-white/5">
+        <div className="flex items-center justify-between p-4 border-b border-white/5 bg-white/5 relative">
+          {executionState === "running" && (
+            <div className="absolute bottom-0 left-0 h-0.5 bg-purple-500 animate-[loading_2s_ease-in-out_infinite] w-full" />
+          )}
+
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center">
-              <Terminal className="w-4 h-4 text-purple-400" />
-            </div>
+            <div className={`w-2 h-2 rounded-full ${state.dot}`} />
             <div>
-              <h3 className="text-sm font-semibold text-white">
+              <h3 className="text-xs font-bold text-white uppercase tracking-widest">
                 Execution Logs
               </h3>
-              <p className={`text-xs ${state.color}`}>{state.label}</p>
+              <p className={`text-[10px] font-medium ${state.color}`}>
+                {state.label}
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-1">
@@ -119,57 +150,71 @@ export function ExecutionPanel({ isOpen, onClose }) {
               variant="ghost"
               size="icon"
               onClick={copyLogs}
-              className="h-7 w-7 text-muted-foreground hover:text-white"
+              className="h-6 w-6 text-muted-foreground hover:text-white rounded-lg hover:bg-white/10"
               title="Copy logs"
             >
-              <Copy className="w-3.5 h-3.5" />
+              <Copy className="w-3 h-3" />
             </Button>
             <Button
               variant="ghost"
               size="icon"
               onClick={clearExecutionLogs}
-              className="h-7 w-7 text-muted-foreground hover:text-white"
+              className="h-6 w-6 text-muted-foreground hover:text-white rounded-lg hover:bg-white/10"
               title="Clear logs"
             >
-              <Trash2 className="w-3.5 h-3.5" />
+              <Trash2 className="w-3 h-3" />
             </Button>
             <Button
               variant="ghost"
               size="icon"
               onClick={onClose}
-              className="h-7 w-7 text-muted-foreground hover:text-white"
+              className="h-6 w-6 text-muted-foreground hover:text-white rounded-lg hover:bg-white/10"
             >
-              <X className="w-3.5 h-3.5" />
+              <X className="w-3 h-3" />
             </Button>
           </div>
         </div>
 
         {/* Logs */}
-        <div className="flex-1 overflow-y-auto p-3 space-y-2 max-h-80 scrollbar-hide">
+        <div className="flex-1 overflow-y-auto p-3 space-y-2 max-h-80 scrollbar-hide bg-gradient-to-b from-transparent to-black/20">
           {executionLogs.length > 0 ? (
             executionLogs.map((log) => <LogEntry key={log.id} log={log} />)
           ) : (
-            <div className="flex flex-col items-center justify-center h-32 text-muted-foreground">
-              <Clock className="w-8 h-8 opacity-20 mb-2" />
-              <p className="text-sm">No execution logs yet</p>
-              <p className="text-xs opacity-50">Run a test to see results</p>
+            <div className="flex flex-col items-center justify-center h-48 text-muted-foreground">
+              <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center mb-3">
+                <Terminal className="w-6 h-6 opacity-20" />
+              </div>
+              <p className="text-sm font-medium">Ready to run</p>
+              <p className="text-xs opacity-50 mt-1 max-w-[150px] text-center">
+                Click Test to start execution
+              </p>
             </div>
           )}
         </div>
 
-        {/* Summary */}
+        {/* Footer Stats */}
         {executionLogs.length > 0 && (
-          <div className="p-3 border-t border-white/5 bg-black/20">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-muted-foreground">
-                {executionLogs.filter((l) => l.status === "success").length}{" "}
-                succeeded
+          <div className="px-4 py-2 border-t border-white/5 bg-black/40 flex items-center justify-between text-[10px] font-mono text-muted-foreground">
+            <div className="flex gap-3">
+              <span className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-green-500/50" />
+                {executionLogs.filter((l) => l.status === "success").length} OK
               </span>
-              <span className="text-muted-foreground">
-                {executionLogs.filter((l) => l.status === "error").length}{" "}
-                failed
+              <span className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-red-500/50" />
+                {executionLogs.filter((l) => l.status === "error").length} Err
               </span>
             </div>
+
+            {executionLogs.length > 0 && (
+              <span>
+                Time:{" "}
+                {new Date(
+                  executionLogs[executionLogs.length - 1].timestamp,
+                ).getTime() - new Date(executionLogs[0].timestamp).getTime()}
+                ms
+              </span>
+            )}
           </div>
         )}
       </div>
