@@ -36,11 +36,13 @@ function DashboardLogin() {
       <div className="login-container">
         <div className="login-card">
           <div className="login-header">
-            <img src="/Zolly Logo.png" alt="Zyllo" className="login-logo" />
-            <h1 className="login-title">Welcome to Zyllo</h1>
-            <p className="login-subtitle">
-              Enter your email to access the dashboard
-            </p>
+            <div className="flex flex-col items-center justify-center">
+              <img src="/Zolly Logo.png" alt="Zyllo" className="login-logo" />
+              <h1 className="login-title">Welcome to Zyllo</h1>
+              <p className="login-subtitle">
+                Enter your email to access the dashboard
+              </p>
+            </div>
           </div>
 
           <form onSubmit={handleSubmit} className="login-form">

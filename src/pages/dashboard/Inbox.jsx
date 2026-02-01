@@ -334,7 +334,7 @@ function Inbox() {
       </div>
 
       {/* 3. Conversation Details / Chat */}
-      <div className="inbox-chat flex-1 flex flex-col relative min-w-0 bg-transparent hidden sm:flex">
+      <div className="inbox-chat flex-1 flex flex-col relative min-w-0 bg-transparent sm:flex">
         {/* Chat Header */}
         <div className="h-16 border-b border-white/10 flex items-center justify-between px-6">
           <div className="flex items-center gap-3">
@@ -606,7 +606,7 @@ function Inbox() {
               Beta
             </Badge>
           </div>
-          <div className="bg-gradient-to-br from-purple-500/10 to-transparent rounded-xl border border-purple-500/20 p-6 text-center">
+          <div className="bg-linear-to-br from-purple-500/10 to-transparent rounded-xl border border-purple-500/20 p-6 text-center">
             <div className="w-12 h-12 rounded-full bg-purple-500/20 flex items-center justify-center mx-auto mb-3">
               <Sparkles className="w-6 h-6 text-purple-500" />
             </div>
