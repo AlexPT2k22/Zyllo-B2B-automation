@@ -1,31 +1,51 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
 
 const AuthContext = createContext(null);
-
-const STORAGE_KEY = "zyllo_dashboard_session";
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Check for existing session on mount
+  // Check for existing Supabase session on mount
   useEffect(() => {
-    const storedSession = localStorage.getItem(STORAGE_KEY);
-    if (storedSession) {
-      try {
-        const session = JSON.parse(storedSession);
-        // Verify the session is still valid (optional: add expiry check)
-        setUser(session);
-      } catch (e) {
-        localStorage.removeItem(STORAGE_KEY);
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setUser({
+          email: session.user.email,
+          id: session.user.id,
+        });
       }
-    }
-    setIsLoading(false);
+      setIsLoading(false);
+    });
+
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === "SIGNED_IN" && session?.user) {
+        setUser({
+          email: session.user.email,
+          id: session.user.id,
+        });
+      } else if (event === "SIGNED_OUT") {
+        setUser(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
+  /**
+   * Login with Magic Link
+   * 1. First checks if email is an approved beta user
+   * 2. If approved, sends Magic Link via Supabase Auth
+   */
   const login = async (email) => {
     try {
-      const response = await fetch(
+      // Step 1: Verify beta access via existing edge function
+      const verifyResponse = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/dashboard-access`,
         {
           method: "POST",
@@ -37,29 +57,36 @@ export function AuthProvider({ children }) {
         },
       );
 
-      const data = await response.json();
+      const verifyData = await verifyResponse.json();
 
-      if (!response.ok) {
-        throw new Error(data.error || "Access denied");
+      if (!verifyResponse.ok) {
+        throw new Error(verifyData.error || "Access denied - not a beta user");
       }
 
-      const session = {
-        email: data.email,
-        name: data.name,
-        loginAt: new Date().toISOString(),
+      // Step 2: Send Magic Link (only if beta user approved)
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/dashboard`,
+        },
+      });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      return {
+        success: true,
+        message: "Check your email for the login link!",
+        requiresConfirmation: true,
       };
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
-      setUser(session);
-
-      return { success: true };
     } catch (error) {
       return { success: false, error: error.message };
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem(STORAGE_KEY);
+  const logout = async () => {
+    await supabase.auth.signOut();
     setUser(null);
   };
 

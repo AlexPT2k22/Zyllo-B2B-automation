@@ -1,7 +1,14 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
-import { Loader2, Mail, ArrowLeft, ChevronRight } from "lucide-react";
+import {
+  Loader2,
+  Mail,
+  ArrowLeft,
+  ChevronRight,
+  CheckCircle2,
+  Inbox,
+} from "lucide-react";
 import DarkVeil from "@/assets/DarkVeil";
 import { Button } from "@/components/ui/button";
 
@@ -9,6 +16,7 @@ function DashboardLogin() {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [emailSent, setEmailSent] = useState(false);
 
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -24,7 +32,13 @@ function DashboardLogin() {
     const result = await login(email);
 
     if (result.success) {
-      navigate(from, { replace: true });
+      if (result.requiresConfirmation) {
+        // Magic Link sent - show confirmation UI
+        setEmailSent(true);
+      } else {
+        // Direct login (fallback)
+        navigate(from, { replace: true });
+      }
     } else {
       setError(result.error);
     }
@@ -32,17 +46,84 @@ function DashboardLogin() {
     setIsLoading(false);
   };
 
+  // Email sent confirmation UI
+  if (emailSent) {
+    return (
+      <div className="relative w-full h-screen overflow-hidden bg-[#0a0a0f] flex items-center justify-center">
+        {/* Background Layer */}
+        <div className="absolute inset-0 z-0">
+          <DarkVeil
+            hueShift={348}
+            noiseIntensity={0}
+            scanlineIntensity={0}
+            speed={0.3}
+            scanlineFrequency={0.5}
+            warpAmount={0}
+          />
+        </div>
+
+        {/* Content Layer */}
+        <div className="relative z-10 w-full max-w-md px-10 text-center">
+          <div className="mb-6">
+            <div className="w-20 h-20 flex items-center justify-center mx-auto mb-6">
+              <Inbox className="w-10 h-10 text-green-400" />
+            </div>
+            <h1 className="text-2xl font-bold text-white mb-2 tracking-tight">
+              Check Your Email
+            </h1>
+            <p className="text-sm text-muted-foreground/80 mb-2">
+              We sent a magic link to
+            </p>
+            <p className="text-purple-400 font-medium">{email}</p>
+          </div>
+
+          <div className="space-y-4">
+            <p className="text-xs text-white/50">
+              Click the link in your email to sign in. The link will expire in 1
+              hour.
+            </p>
+
+            <div className="flex flex-col gap-3 pt-4">
+              <Button
+                variant="outline"
+                className="w-full border-white/10 text-white/70 hover:text-white hover:bg-white/5"
+                onClick={() => setEmailSent(false)}
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Use a different email
+              </Button>
+
+              <Button
+                variant="ghost"
+                className="w-full text-purple-400 hover:text-purple-300 hover:bg-purple-500/10"
+                onClick={handleSubmit}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Mail className="w-4 h-4 mr-2" />
+                )}
+                Resend magic link
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="relative w-full h-screen overflow-hidden bg-[#0a0a0f] flex items-center justify-center">
       {/* Background Layer */}
       <div className="absolute inset-0 z-0">
         <DarkVeil
           hueShift={348}
-        noiseIntensity={0}
-        scanlineIntensity={0}
-        speed={0.3}
+          noiseIntensity={0}
+          scanlineIntensity={0}
+          speed={0.3}
           scanlineFrequency={0.5}
-        warpAmount={0}
+          warpAmount={0}
         />
       </div>
 
@@ -67,7 +148,7 @@ function DashboardLogin() {
               Welcome Back
             </h1>
             <p className="text-sm text-muted-foreground/80">
-              Enter your email to access your workspace
+              Enter your email to receive a magic link
             </p>
           </div>
 
@@ -113,7 +194,7 @@ function DashboardLogin() {
                 </>
               ) : (
                 <span className="flex items-center justify-center">
-                  Continue to Dashboard
+                  Send Magic Link
                   <ChevronRight className="w-4 h-4 ml-1 opacity-70" />
                 </span>
               )}

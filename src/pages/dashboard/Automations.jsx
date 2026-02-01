@@ -5,10 +5,11 @@
  * Inspired by Zapier, n8n, Retool, and Linear Automations.
  */
 
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import { DndContext } from "@dnd-kit/core";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   Plus,
   ZoomIn,
@@ -20,6 +21,9 @@ import {
   AlertCircle,
   CheckCircle2,
   Terminal,
+  Loader2,
+  Cloud,
+  CloudOff,
 } from "lucide-react";
 
 // Import automation engine
@@ -134,7 +138,25 @@ function Automations() {
     executionState,
     nodeStates,
     executionLogs,
+    loadFromCloud,
+    isLoading,
+    isSaving,
+    syncError,
   } = useWorkflowStore();
+
+  // Auth context
+  const { user } = useAuth();
+
+  // Load workflows from cloud on mount
+  useEffect(() => {
+    if (user?.email) {
+      loadFromCloud(user.email).then((result) => {
+        if (!result.success) {
+          toast.error("Failed to load automations: " + result.error);
+        }
+      });
+    }
+  }, [user?.email, loadFromCloud]);
 
   const workflow = getCurrentWorkflow();
   const nodes = workflow?.nodes || [];
@@ -317,13 +339,13 @@ function Automations() {
     setSelectedNode(node);
   };
 
-  // Save workflow
-  const handleSave = () => {
-    const result = save();
+  // Save workflow to cloud
+  const handleSave = async () => {
+    const result = await save();
     if (result.success) {
-      toast.success("Automation saved!");
+      toast.success("Automation saved to cloud!");
     } else {
-      toast.error(result.errors[0] || "Failed to save");
+      toast.error(result.errors?.[0] || result.error || "Failed to save");
     }
   };
 
@@ -349,6 +371,16 @@ function Automations() {
     setShowTestModal(true);
     setShowExecutionPanel(true);
   };
+
+  // Show loading screen while fetching from cloud
+  if (isLoading) {
+    return (
+      <div className="h-screen -m-8 flex flex-col items-center justify-center overflow-hidden bg-[#0a0a0f]">
+        <Loader2 className="w-8 h-8 text-purple-500 animate-spin mb-4" />
+        <p className="text-sm text-muted-foreground">Loading automations...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="h-screen -m-8 flex flex-col overflow-hidden bg-[#0a0a0f]">
@@ -489,9 +521,19 @@ function Automations() {
             variant="outline"
             className={`h-8 border-white/10 ${isDirty ? "text-yellow-400 border-yellow-500/30 bg-yellow-500/10 hover:bg-yellow-500/20 hover:text-yellow-400/50" : "text-muted-foreground hover:bg-transparent hover:text-white"}`}
             onClick={handleSave}
+            disabled={isSaving}
           >
-            <Save className="w-3.5 h-3.5 mr-1" />
-            Save
+            {isSaving ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Cloud className="w-3.5 h-3.5 mr-1" />
+                Save
+              </>
+            )}
           </Button>
 
           <Button
@@ -620,7 +662,7 @@ function Automations() {
           {nodes.length === 0 && (
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="text-center">
-                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-purple-500/20 to-purple-500/5 flex items-center justify-center mx-auto mb-6 border border-purple-500/20">
+                <div className="w-20 h-20 rounded-2xl bg-linear-to-br from-purple-500/20 to-purple-500/5 flex items-center justify-center mx-auto mb-6 border border-purple-500/20">
                   <Plus className="w-10 h-10 text-purple-400" />
                 </div>
                 <h3 className="text-xl font-semibold text-white mb-2">

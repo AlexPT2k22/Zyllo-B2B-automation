@@ -1,13 +1,13 @@
 /**
  * Workflow Store - Zustand
  *
- * State management for automations with persistence.
+ * State management for automations with cloud persistence via Supabase.
  */
 
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
 import { nodeRegistry } from "./nodeRegistry";
 import { automationEngine } from "./engine";
+import * as automationService from "./automationService";
 
 // Generate unique ID
 const generateId = () =>
@@ -24,7 +24,7 @@ const createEmptyWorkflow = () => ({
   updatedAt: new Date().toISOString(),
 });
 
-// Demo workflow for first time
+// Demo workflow for new users
 const createDemoWorkflow = () => ({
   id: "demo-workflow",
   name: "Welcome Automation",
@@ -58,321 +58,380 @@ const createDemoWorkflow = () => ({
   updatedAt: new Date().toISOString(),
 });
 
-export const useWorkflowStore = create(
-  persist(
-    (set, get) => ({
-      // State
-      workflows: [createDemoWorkflow()],
-      currentWorkflowId: "demo-workflow",
+export const useWorkflowStore = create((set, get) => ({
+  // State
+  workflows: [],
+  currentWorkflowId: null,
+  isDirty: false,
+  validationErrors: [],
+  userEmail: null,
+
+  // Cloud sync state
+  isLoading: false,
+  isSaving: false,
+  syncError: null,
+  lastSyncedAt: null,
+
+  // Execution state
+  executionState: "idle", // idle | running | success | error
+  executionLogs: [],
+  nodeStates: {}, // { nodeId: 'idle' | 'running' | 'success' | 'error' }
+
+  // Getters
+  getCurrentWorkflow: () => {
+    const state = get();
+    return (
+      state.workflows.find((w) => w.id === state.currentWorkflowId) || null
+    );
+  },
+
+  // Cloud Actions
+  setUserEmail: (email) => set({ userEmail: email }),
+
+  loadFromCloud: async (email) => {
+    if (!email) return { success: false, error: "No email provided" };
+
+    set({ isLoading: true, syncError: null, userEmail: email });
+
+    const { data, error } = await automationService.fetchWorkflows(email);
+
+    if (error) {
+      set({ isLoading: false, syncError: error.message });
+      return { success: false, error: error.message };
+    }
+
+    // If no workflows, create demo
+    if (data.length === 0) {
+      const demo = createDemoWorkflow();
+      set({
+        workflows: [demo],
+        currentWorkflowId: demo.id,
+        isLoading: false,
+        isDirty: true, // Mark dirty so user saves the demo
+      });
+    } else {
+      set({
+        workflows: data,
+        currentWorkflowId: data[0].id,
+        isLoading: false,
+        lastSyncedAt: new Date().toISOString(),
+      });
+    }
+
+    return { success: true };
+  },
+
+  saveToCloud: async () => {
+    const { userEmail, getCurrentWorkflow, validate } = get();
+    const workflow = getCurrentWorkflow();
+
+    if (!userEmail || !workflow) {
+      return { success: false, error: "No user or workflow" };
+    }
+
+    const validation = validate();
+    if (!validation.valid) {
+      set({ validationErrors: validation.errors });
+      return { success: false, errors: validation.errors };
+    }
+
+    set({ isSaving: true, syncError: null });
+
+    const result = await automationService.saveWorkflow(userEmail, workflow);
+
+    if (!result.success) {
+      set({ isSaving: false, syncError: result.error });
+      return result;
+    }
+
+    set({
+      isSaving: false,
       isDirty: false,
       validationErrors: [],
+      lastSyncedAt: new Date().toISOString(),
+    });
 
-      // Execution state
-      executionState: "idle", // idle | running | success | error
-      executionLogs: [],
-      nodeStates: {}, // { nodeId: 'idle' | 'running' | 'success' | 'error' }
+    return { success: true };
+  },
 
-      // Getters
-      getCurrentWorkflow: () => {
-        const state = get();
-        return (
-          state.workflows.find((w) => w.id === state.currentWorkflowId) || null
-        );
-      },
+  // Local Actions
+  setCurrentWorkflow: (id) => set({ currentWorkflowId: id, isDirty: false }),
 
-      // Actions
-      setCurrentWorkflow: (id) =>
-        set({ currentWorkflowId: id, isDirty: false }),
+  createWorkflow: () => {
+    const newWorkflow = createEmptyWorkflow();
+    set((state) => ({
+      workflows: [...state.workflows, newWorkflow],
+      currentWorkflowId: newWorkflow.id,
+      isDirty: true,
+    }));
+    return newWorkflow.id;
+  },
 
-      createWorkflow: () => {
-        const newWorkflow = createEmptyWorkflow();
-        set((state) => ({
-          workflows: [...state.workflows, newWorkflow],
-          currentWorkflowId: newWorkflow.id,
-          isDirty: false,
-        }));
-        return newWorkflow.id;
-      },
+  deleteWorkflow: async (id) => {
+    const { userEmail, workflows, currentWorkflowId } = get();
 
-      deleteWorkflow: (id) => {
-        set((state) => {
-          const remaining = state.workflows.filter((w) => w.id !== id);
-          const newCurrentId = remaining.length > 0 ? remaining[0].id : null;
-          return {
-            workflows: remaining,
-            currentWorkflowId:
-              state.currentWorkflowId === id
-                ? newCurrentId
-                : state.currentWorkflowId,
-          };
-        });
-      },
+    // Delete from cloud
+    if (userEmail) {
+      await automationService.deleteWorkflow(userEmail, id);
+    }
 
-      updateWorkflow: (updates) => {
-        set((state) => ({
-          workflows: state.workflows.map((w) =>
-            w.id === state.currentWorkflowId
-              ? { ...w, ...updates, updatedAt: new Date().toISOString() }
-              : w,
-          ),
-          isDirty: true,
-        }));
-      },
+    const remaining = workflows.filter((w) => w.id !== id);
+    const newCurrentId = remaining.length > 0 ? remaining[0].id : null;
 
-      // Node operations
-      addNode: (nodeTypeId, position) => {
-        const newNode = nodeRegistry.createInstance(nodeTypeId, position);
-        get().updateWorkflow({
-          nodes: [...(get().getCurrentWorkflow()?.nodes || []), newNode],
-        });
-        return newNode;
-      },
+    set({
+      workflows: remaining,
+      currentWorkflowId:
+        currentWorkflowId === id ? newCurrentId : currentWorkflowId,
+    });
+  },
 
-      updateNode: (nodeId, updates) => {
-        const workflow = get().getCurrentWorkflow();
-        if (!workflow) return;
+  updateWorkflow: (updates) => {
+    set((state) => ({
+      workflows: state.workflows.map((w) =>
+        w.id === state.currentWorkflowId
+          ? { ...w, ...updates, updatedAt: new Date().toISOString() }
+          : w,
+      ),
+      isDirty: true,
+    }));
+  },
 
-        get().updateWorkflow({
-          nodes: workflow.nodes.map((n) =>
-            n.id === nodeId ? { ...n, ...updates } : n,
-          ),
-        });
-      },
+  // Node operations
+  addNode: (nodeTypeId, position) => {
+    const newNode = nodeRegistry.createInstance(nodeTypeId, position);
+    get().updateWorkflow({
+      nodes: [...(get().getCurrentWorkflow()?.nodes || []), newNode],
+    });
+    return newNode;
+  },
 
-      updateNodeConfig: (nodeId, config) => {
-        get().updateNode(nodeId, { config });
-      },
+  updateNode: (nodeId, updates) => {
+    const workflow = get().getCurrentWorkflow();
+    if (!workflow) return;
 
-      deleteNode: (nodeId) => {
-        const workflow = get().getCurrentWorkflow();
-        if (!workflow) return;
+    get().updateWorkflow({
+      nodes: workflow.nodes.map((n) =>
+        n.id === nodeId ? { ...n, ...updates } : n,
+      ),
+    });
+  },
 
-        get().updateWorkflow({
-          nodes: workflow.nodes.filter((n) => n.id !== nodeId),
-          connections: workflow.connections.filter(
-            (c) => c.from !== nodeId && c.to !== nodeId,
-          ),
-        });
-      },
+  updateNodeConfig: (nodeId, config) => {
+    get().updateNode(nodeId, { config });
+  },
 
-      moveNode: (nodeId, x, y) => {
-        get().updateNode(nodeId, { x, y });
-      },
+  deleteNode: (nodeId) => {
+    const workflow = get().getCurrentWorkflow();
+    if (!workflow) return;
 
-      // Connection operations
-      addConnection: (from, to) => {
-        const workflow = get().getCurrentWorkflow();
-        if (!workflow) return false;
+    get().updateWorkflow({
+      nodes: workflow.nodes.filter((n) => n.id !== nodeId),
+      connections: workflow.connections.filter(
+        (c) => c.from !== nodeId && c.to !== nodeId,
+      ),
+    });
+  },
 
-        // Check if exists
-        if (workflow.connections.some((c) => c.from === from && c.to === to)) {
-          return false;
-        }
+  moveNode: (nodeId, x, y) => {
+    get().updateNode(nodeId, { x, y });
+  },
 
-        get().updateWorkflow({
-          connections: [...workflow.connections, { from, to }],
-        });
-        return true;
-      },
+  // Connection operations
+  addConnection: (from, to) => {
+    const workflow = get().getCurrentWorkflow();
+    if (!workflow) return false;
 
-      removeConnection: (from, to) => {
-        const workflow = get().getCurrentWorkflow();
-        if (!workflow) return;
+    // Check if exists
+    if (workflow.connections.some((c) => c.from === from && c.to === to)) {
+      return false;
+    }
 
-        get().updateWorkflow({
-          connections: workflow.connections.filter(
-            (c) => !(c.from === from && c.to === to),
-          ),
-        });
-      },
+    get().updateWorkflow({
+      connections: [...workflow.connections, { from, to }],
+    });
+    return true;
+  },
 
-      // Workflow control
-      toggleActive: () => {
-        const workflow = get().getCurrentWorkflow();
-        if (!workflow) return;
+  removeConnection: (from, to) => {
+    const workflow = get().getCurrentWorkflow();
+    if (!workflow) return;
 
-        // Validate before activating
-        if (!workflow.isActive) {
-          const validation = get().validate();
-          if (!validation.valid) {
-            return { success: false, errors: validation.errors };
-          }
-        }
+    get().updateWorkflow({
+      connections: workflow.connections.filter(
+        (c) => !(c.from === from && c.to === to),
+      ),
+    });
+  },
 
-        get().updateWorkflow({ isActive: !workflow.isActive });
-        set({ isDirty: false });
-        return { success: true };
-      },
+  // Workflow control
+  toggleActive: () => {
+    const workflow = get().getCurrentWorkflow();
+    if (!workflow) return;
 
-      save: () => {
-        const validation = get().validate();
-        if (!validation.valid) {
-          set({ validationErrors: validation.errors });
-          return { success: false, errors: validation.errors };
-        }
+    // Validate before activating
+    if (!workflow.isActive) {
+      const validation = get().validate();
+      if (!validation.valid) {
+        return { success: false, errors: validation.errors };
+      }
+    }
 
-        set({ isDirty: false, validationErrors: [] });
-        // Persistence is handled by zustand-persist middleware
-        return { success: true };
-      },
+    get().updateWorkflow({ isActive: !workflow.isActive });
+    return { success: true };
+  },
 
-      validate: () => {
-        const workflow = get().getCurrentWorkflow();
-        if (!workflow)
-          return { valid: false, errors: ["No workflow selected"] };
+  // Legacy save (now calls saveToCloud)
+  save: () => {
+    return get().saveToCloud();
+  },
 
-        const errors = [];
-        const warnings = [];
+  validate: () => {
+    const workflow = get().getCurrentWorkflow();
+    if (!workflow) return { valid: false, errors: ["No workflow selected"] };
 
-        // Must have at least one trigger
-        const triggers = workflow.nodes.filter((n) => {
+    const errors = [];
+    const warnings = [];
+
+    // Must have at least one trigger
+    const triggers = workflow.nodes.filter((n) => {
+      const def = nodeRegistry.get(n.nodeType);
+      return def?.type === "trigger";
+    });
+
+    if (triggers.length === 0) {
+      errors.push("Workflow must have at least one trigger");
+    }
+
+    // Must have at least one action
+    const actions = workflow.nodes.filter((n) => {
+      const def = nodeRegistry.get(n.nodeType);
+      return def?.type === "action";
+    });
+
+    if (actions.length === 0) {
+      errors.push("Workflow must have at least one action");
+    }
+
+    // Check for disconnected nodes
+    if (workflow.nodes.length > 1) {
+      const connectedNodes = new Set();
+      workflow.connections.forEach((c) => {
+        connectedNodes.add(c.from);
+        connectedNodes.add(c.to);
+      });
+
+      workflow.nodes.forEach((n) => {
+        if (!connectedNodes.has(n.id)) {
           const def = nodeRegistry.get(n.nodeType);
-          return def?.type === "trigger";
-        });
-
-        if (triggers.length === 0) {
-          errors.push("Workflow must have at least one trigger");
+          warnings.push(`"${def?.name || n.nodeType}" is not connected`);
         }
+      });
+    }
 
-        // Must have at least one action
-        const actions = workflow.nodes.filter((n) => {
-          const def = nodeRegistry.get(n.nodeType);
-          return def?.type === "action";
-        });
+    // Check required properties
+    workflow.nodes.forEach((node) => {
+      const def = nodeRegistry.get(node.nodeType);
+      if (!def) return;
 
-        if (actions.length === 0) {
-          errors.push("Workflow must have at least one action");
+      def.properties?.forEach((prop) => {
+        if (prop.required && !node.config?.[prop.id]) {
+          errors.push(`${def.name}: "${prop.label}" is required`);
         }
+      });
+    });
 
-        // Check for disconnected nodes
-        if (workflow.nodes.length > 1) {
-          const connectedNodes = new Set();
-          workflow.connections.forEach((c) => {
-            connectedNodes.add(c.from);
-            connectedNodes.add(c.to);
-          });
+    set({ validationErrors: errors });
+    return { valid: errors.length === 0, errors, warnings };
+  },
 
-          workflow.nodes.forEach((n) => {
-            if (!connectedNodes.has(n.id)) {
-              const def = nodeRegistry.get(n.nodeType);
-              warnings.push(`"${def?.name || n.nodeType}" is not connected`);
-            }
-          });
-        }
+  // Execution
+  setExecutionState: (state) => set({ executionState: state }),
 
-        // Check required properties
-        workflow.nodes.forEach((node) => {
-          const def = nodeRegistry.get(node.nodeType);
-          if (!def) return;
+  setNodeState: (nodeId, state) => {
+    set((prev) => ({
+      nodeStates: { ...prev.nodeStates, [nodeId]: state },
+    }));
+  },
 
-          def.properties?.forEach((prop) => {
-            if (prop.required && !node.config?.[prop.id]) {
-              errors.push(`${def.name}: "${prop.label}" is required`);
-            }
-          });
-        });
+  addExecutionLog: (log) => {
+    set((prev) => ({
+      executionLogs: [
+        ...prev.executionLogs,
+        { ...log, id: Date.now(), timestamp: new Date().toISOString() },
+      ],
+    }));
+  },
 
-        set({ validationErrors: errors });
-        return { valid: errors.length === 0, errors, warnings };
-      },
+  clearExecutionLogs: () => set({ executionLogs: [], nodeStates: {} }),
 
-      // Execution
-      setExecutionState: (state) => set({ executionState: state }),
+  // Test execution
+  runTest: async (mockTriggerData = {}) => {
+    const workflow = get().getCurrentWorkflow();
+    if (!workflow) return { success: false, error: "No workflow selected" };
 
-      setNodeState: (nodeId, state) => {
-        set((prev) => ({
-          nodeStates: { ...prev.nodeStates, [nodeId]: state },
-        }));
-      },
+    const validation = get().validate();
+    if (!validation.valid) {
+      return { success: false, error: validation.errors[0] };
+    }
 
-      addExecutionLog: (log) => {
-        set((prev) => ({
-          executionLogs: [
-            ...prev.executionLogs,
-            { ...log, id: Date.now(), timestamp: new Date().toISOString() },
-          ],
-        }));
-      },
+    // Clear previous state
+    get().clearExecutionLogs();
+    set({ executionState: "running" });
 
-      clearExecutionLogs: () => set({ executionLogs: [], nodeStates: {} }),
-
-      // Test execution
-      runTest: async (mockTriggerData = {}) => {
-        const workflow = get().getCurrentWorkflow();
-        if (!workflow) return { success: false, error: "No workflow selected" };
-
-        const validation = get().validate();
-        if (!validation.valid) {
-          return { success: false, error: validation.errors[0] };
-        }
-
-        // Clear previous state
-        get().clearExecutionLogs();
-        set({ executionState: "running" });
-
-        try {
-          // Execute with callbacks for real-time updates
-          const engine = automationEngine;
-          const context = await engine.execute(workflow, mockTriggerData, {
-            onNodeStart: (nodeId, nodeName) => {
-              get().setNodeState(nodeId, "running");
-              get().addExecutionLog({
-                nodeId,
-                nodeName,
-                status: "running",
-                message: `Starting: ${nodeName}`,
-              });
-            },
-            onNodeComplete: (nodeId, nodeName, result) => {
-              get().setNodeState(nodeId, "success");
-              get().addExecutionLog({
-                nodeId,
-                nodeName,
-                status: "success",
-                message: `Completed: ${nodeName}`,
-                result,
-              });
-            },
-            onNodeError: (nodeId, nodeName, error) => {
-              get().setNodeState(nodeId, "error");
-              get().addExecutionLog({
-                nodeId,
-                nodeName,
-                status: "error",
-                message: `Error: ${error.message}`,
-              });
-            },
-          });
-
-          set({ executionState: "success" });
-          return { success: true, context };
-        } catch (error) {
-          set({ executionState: "error" });
+    try {
+      // Execute with callbacks for real-time updates
+      const engine = automationEngine;
+      const context = await engine.execute(workflow, mockTriggerData, {
+        onNodeStart: (nodeId, nodeName) => {
+          get().setNodeState(nodeId, "running");
           get().addExecutionLog({
-            nodeId: "engine",
-            nodeName: "Engine",
-            status: "error",
-            message: error.message,
+            nodeId,
+            nodeName,
+            status: "running",
+            message: `Starting: ${nodeName}`,
           });
-          return { success: false, error: error.message };
-        }
-      },
+        },
+        onNodeComplete: (nodeId, nodeName, result) => {
+          get().setNodeState(nodeId, "success");
+          get().addExecutionLog({
+            nodeId,
+            nodeName,
+            status: "success",
+            message: `Completed: ${nodeName}`,
+            result,
+          });
+        },
+        onNodeError: (nodeId, nodeName, error) => {
+          get().setNodeState(nodeId, "error");
+          get().addExecutionLog({
+            nodeId,
+            nodeName,
+            status: "error",
+            message: `Error: ${error.message}`,
+          });
+        },
+      });
 
-      resetExecutionState: () => {
-        set({
-          executionState: "idle",
-          nodeStates: {},
-        });
-      },
-    }),
-    {
-      name: "zyllo-automations",
-      partialize: (state) => ({
-        workflows: state.workflows,
-        currentWorkflowId: state.currentWorkflowId,
-      }),
-    },
-  ),
-);
+      set({ executionState: "success" });
+      return { success: true, context };
+    } catch (error) {
+      set({ executionState: "error" });
+      get().addExecutionLog({
+        nodeId: "engine",
+        nodeName: "Engine",
+        status: "error",
+        message: error.message,
+      });
+      return { success: false, error: error.message };
+    }
+  },
+
+  resetExecutionState: () => {
+    set({
+      executionState: "idle",
+      nodeStates: {},
+    });
+  },
+}));
 
 export default useWorkflowStore;
