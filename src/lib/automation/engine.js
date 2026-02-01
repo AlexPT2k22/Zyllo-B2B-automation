@@ -142,13 +142,22 @@ export class AutomationEngine {
    * Execute a workflow
    * @param {import('./types').Workflow} workflow
    * @param {Object} triggerData - Data from the trigger event
+   * @param {Object} callbacks - Optional callbacks for UI updates
    * @returns {Promise<ExecutionContext>}
    */
-  async execute(workflow, triggerData = {}) {
+  async execute(workflow, triggerData = {}, callbacks = {}) {
+    const { onNodeStart, onNodeComplete, onNodeError } = callbacks;
     const context = new ExecutionContext(triggerData);
+
+    // Handle both 'from/to' and 'fromNode/toNode' connection formats
+    const normalizedConnections = workflow.connections.map((c) => ({
+      fromNode: c.fromNode || c.from,
+      toNode: c.toNode || c.to,
+    }));
+
     const executionOrder = this.getExecutionOrder(
       workflow.nodes,
-      workflow.connections,
+      normalizedConnections,
     );
 
     context.log("engine", `Starting workflow: ${workflow.name || workflow.id}`);
@@ -165,7 +174,15 @@ export class AutomationEngine {
         continue;
       }
 
+      // Notify UI that node is starting
+      if (onNodeStart) {
+        onNodeStart(nodeInstance.id, nodeDef.name);
+      }
+
       context.log(nodeInstance.id, `Executing: ${nodeDef.name}`);
+
+      // Add small delay for visual feedback
+      await new Promise((resolve) => setTimeout(resolve, 300));
 
       try {
         if (typeof nodeDef.execute === "function") {
@@ -189,9 +206,20 @@ export class AutomationEngine {
           }
 
           context.log(nodeInstance.id, `Completed successfully`);
+
+          // Notify UI that node completed
+          if (onNodeComplete) {
+            onNodeComplete(nodeInstance.id, nodeDef.name, result);
+          }
         }
       } catch (error) {
         context.log(nodeInstance.id, `Error: ${error.message}`, "error");
+
+        // Notify UI of error
+        if (onNodeError) {
+          onNodeError(nodeInstance.id, nodeDef.name, error);
+        }
+
         throw error;
       }
     }

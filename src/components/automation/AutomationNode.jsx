@@ -2,16 +2,14 @@
  * Automation Node Component
  *
  * Generic node renderer that reads visual properties from node definition.
- * Zyllo Style: Glassmorphism Card
+ * Zyllo Style: Glassmorphism Card with Execution State
  */
 
 import React from "react";
 import { useDraggable } from "@dnd-kit/core";
 import { nodeRegistry } from "@/lib/automation/nodeRegistry";
 import {
-  GripVertical,
   Trash2,
-  Circle,
   MessageSquare,
   UserPlus,
   AtSign,
@@ -23,6 +21,9 @@ import {
   GitBranch,
   Clock,
   Variable,
+  CheckCircle2,
+  XCircle,
+  Loader2,
 } from "lucide-react";
 
 const iconMap = {
@@ -39,7 +40,7 @@ const iconMap = {
   Variable,
 };
 
-// Simplified category colors for logic
+// Category colors
 const categoryColors = {
   triggers: "#a855f7",
   actions: "#22c55e",
@@ -47,10 +48,19 @@ const categoryColors = {
   transforms: "#3b82f6",
 };
 
+// Execution state styles
+const executionStyles = {
+  idle: { border: null, glow: null },
+  running: { border: "#a855f7", glow: "0 0 30px rgba(168, 85, 247, 0.4)" },
+  success: { border: "#22c55e", glow: "0 0 20px rgba(34, 197, 94, 0.3)" },
+  error: { border: "#ef4444", glow: "0 0 20px rgba(239, 68, 68, 0.3)" },
+};
+
 export function AutomationNode({
   node,
   isSelected,
   isConnecting,
+  executionState = "idle",
   onSelect,
   onDelete,
   onStartConnection,
@@ -65,6 +75,7 @@ export function AutomationNode({
   const accentColor = categoryColors[nodeDefinition.category] || "#a855f7";
   const categoryLabel =
     nodeDefinition.category?.slice(0, -1).toUpperCase() || "NODE";
+  const execStyle = executionStyles[executionState] || executionStyles.idle;
 
   const getDisplayContent = () => {
     const config = node.config || {};
@@ -86,6 +97,20 @@ export function AutomationNode({
   const hasInputs =
     nodeDefinition.inputs?.length > 0 || nodeDefinition.type !== "trigger";
 
+  // Get execution indicator
+  const getExecutionIndicator = () => {
+    switch (executionState) {
+      case "running":
+        return <Loader2 className="w-4 h-4 text-purple-400 animate-spin" />;
+      case "success":
+        return <CheckCircle2 className="w-4 h-4 text-green-400" />;
+      case "error":
+        return <XCircle className="w-4 h-4 text-red-400" />;
+      default:
+        return null;
+    }
+  };
+
   return (
     <div
       ref={setNodeRef}
@@ -96,52 +121,67 @@ export function AutomationNode({
         transform: transform
           ? `translate3d(${transform.x}px, ${transform.y}px, 0)`
           : undefined,
-        zIndex: isDragging ? 1000 : isSelected ? 100 : 1,
+        zIndex: isDragging
+          ? 1000
+          : isSelected
+            ? 100
+            : executionState !== "idle"
+              ? 50
+              : 1,
         opacity: isDragging ? 0.9 : 1,
-        // Disable touch actions to prevent native scrolling while dragging
         touchAction: "none",
       }}
       className="group"
-      // Apply drag listeners to the entire container
       {...attributes}
       {...listeners}
       onDoubleClick={(e) => {
-        // Prevent double click from triggering drag issues if any
         e.stopPropagation();
         onSelect(node);
       }}
     >
       <div
         className={`
-          relative w-[280px] rounded-2xl overflow-visible transition-all duration-300 cursor-grab active:cursor-grabbing
+          relative w-[280px] rounded-2xl overflow-visible cursor-grab active:cursor-grabbing
+          ${executionState === "running" ? "animate-pulse" : ""}
           ${
             isSelected
-              ? "bg-[#13131a] shadow-[0_20px_60px_-10px_rgba(0,0,0,0.5)] ring-1"
-              : "bg-[#0d0d14] shadow-[0_10px_30px_-10px_rgba(0,0,0,0.5)] border border-white/5 hover:border-white/10 hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.4)]"
+              ? "bg-[#13131a] ring-1"
+              : "bg-[#0d0d14] border border-white/5 hover:border-white/10"
           }
         `}
         style={{
-          boxShadow: isSelected
-            ? `0 0 0 1px ${accentColor}, 0 20px 60px -10px ${accentColor}20`
-            : undefined,
+          boxShadow:
+            execStyle.glow ||
+            (isSelected
+              ? `0 0 0 1px ${accentColor}, 0 20px 60px -10px ${accentColor}20`
+              : "0 10px 30px -10px rgba(0,0,0,0.5)"),
+          borderColor: execStyle.border || undefined,
+          transition: "all 0.3s ease",
         }}
       >
-        {/* Glow effect on hover/select */}
+        {/* Glow effect */}
         <div
-          className="absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-300 pointer-events-none"
+          className="absolute inset-0 rounded-2xl pointer-events-none transition-opacity duration-300"
           style={{
-            background: `radial-gradient(circle at top right, ${accentColor}10, transparent 70%)`,
-            opacity: isSelected ? 1 : 0,
+            background: `radial-gradient(circle at top right, ${execStyle.border || accentColor}10, transparent 70%)`,
+            opacity: isSelected || executionState !== "idle" ? 1 : 0,
           }}
         />
 
         {/* Header */}
         <div className="flex items-center gap-3 p-3 relative z-10">
           <div
-            className="w-10 h-10 rounded-xl flex items-center justify-center shadow-inner"
+            className="w-10 h-10 rounded-xl flex items-center justify-center shadow-inner relative"
             style={{ backgroundColor: `${accentColor}15` }}
           >
             <Icon className="w-5 h-5" style={{ color: accentColor }} />
+
+            {/* Execution state indicator overlay */}
+            {executionState !== "idle" && (
+              <div className="absolute -bottom-1 -right-1 p-0.5 bg-[#0d0d14] rounded-full">
+                {getExecutionIndicator()}
+              </div>
+            )}
           </div>
 
           <div className="flex-1 min-w-0">
@@ -149,6 +189,11 @@ export function AutomationNode({
               <span className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">
                 {categoryLabel}
               </span>
+              {executionState === "running" && (
+                <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 animate-pulse">
+                  Running
+                </span>
+              )}
             </div>
             <h3 className="text-sm font-semibold text-white truncate leading-none pb-0.5">
               {nodeDefinition.name}
@@ -165,7 +210,7 @@ export function AutomationNode({
           </div>
         </div>
 
-        {/* Delete Button (Floating) - Stop propagation to prevent drag */}
+        {/* Delete Button */}
         <button
           onPointerDown={(e) => e.stopPropagation()}
           onClick={(e) => {
@@ -177,7 +222,7 @@ export function AutomationNode({
           <Trash2 className="w-3.5 h-3.5" />
         </button>
 
-        {/* Connection Points - Stop propagation to prevent drag */}
+        {/* Connection Points */}
         {hasInputs && (
           <div className="absolute -top-[13px] left-1/2 -translate-x-1/2 z-20">
             <button
@@ -211,10 +256,9 @@ export function AutomationNode({
                 e.stopPropagation();
                 onStartConnection(node.id);
               }}
-              className="group/port w-7 h-7 rounded-full bg-[#0d0d14] border border-white/20 hover:border(--color) flex items-center justify-center transition-all duration-200 hover:scale-110 shadow-lg relative cursor-crosshair"
-              style={{ "--color": accentColor }}
+              className="group/port w-7 h-7 rounded-full bg-[#0d0d14] border border-white/20 hover:border-purple-400 flex items-center justify-center transition-all duration-200 hover:scale-110 shadow-lg relative cursor-crosshair"
             >
-              <div className="w-2.5 h-2.5 rounded-full bg-white/40 transition-colors duration-200 group-hover/port:bg-(--color)" />
+              <div className="w-2.5 h-2.5 rounded-full bg-white/40 transition-colors duration-200 group-hover/port:bg-purple-400" />
             </button>
           </div>
         )}

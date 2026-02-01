@@ -1,11 +1,11 @@
 /**
  * Automations Builder
  *
- * Professional automation canvas with Node Registry, Node Picker, and Property Panel.
+ * Professional automation canvas with workflow store, testing, and execution feedback.
  * Inspired by Zapier, n8n, Retool, and Linear Automations.
  */
 
-import React, { useState, useRef, useCallback, useEffect } from "react";
+import React, { useState, useRef, useCallback } from "react";
 import { DndContext } from "@dnd-kit/core";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -16,21 +16,23 @@ import {
   Maximize2,
   Play,
   Save,
-  Undo,
-  Redo,
-  Settings,
-  PanelLeftOpen,
-  PanelRightOpen,
+  Power,
+  AlertCircle,
+  CheckCircle2,
+  Terminal,
 } from "lucide-react";
 
 // Import automation engine
 import { nodeRegistry } from "@/lib/automation/nodeRegistry";
+import { useWorkflowStore } from "@/lib/automation/useWorkflowStore";
 import "@/lib/automation/nodes"; // Auto-registers all nodes
 
 // Import components
 import { NodePicker } from "@/components/automation/NodePicker";
 import { PropertyPanel } from "@/components/automation/PropertyPanel";
 import { AutomationNode } from "@/components/automation/AutomationNode";
+import { ExecutionPanel } from "@/components/automation/ExecutionPanel";
+import { TestModal } from "@/components/automation/TestModal";
 
 // Connection Arrow Component
 function ConnectionArrow({ from, to, nodes }) {
@@ -46,7 +48,6 @@ function ConnectionArrow({ from, to, nodes }) {
 
   const midY = (startY + endY) / 2;
 
-  // Get color based on source node type
   const nodeDef = nodeRegistry.get(fromNode.nodeType);
   const color = nodeDef?.color || "#a855f7";
 
@@ -85,38 +86,8 @@ function ConnectionArrow({ from, to, nodes }) {
   );
 }
 
-// Initial demo workflow
-const INITIAL_NODES = [
-  {
-    id: "trigger-demo-1",
-    nodeType: "keyword_match",
-    x: 200,
-    y: 100,
-    config: {
-      keywords: "price, cost, how much",
-      matchType: "contains",
-      caseSensitive: false,
-    },
-  },
-  {
-    id: "action-demo-1",
-    nodeType: "send_reply",
-    x: 200,
-    y: 350,
-    config: {
-      message:
-        "Hi {{username}}! Our product costs €50. Would you like more details?",
-      delay: 2,
-    },
-  },
-];
-
-const INITIAL_CONNECTIONS = [{ from: "trigger-demo-1", to: "action-demo-1" }];
-
 function Automations() {
   const canvasRef = useRef(null);
-  const [nodes, setNodes] = useState(INITIAL_NODES);
-  const [connections, setConnections] = useState(INITIAL_CONNECTIONS);
   const [viewport, setViewport] = useState({ x: 0, y: 0, scale: 1 });
   const [isPanning, setIsPanning] = useState(false);
   const [panStart, setPanStart] = useState({ x: 0, y: 0 });
@@ -125,20 +96,45 @@ function Automations() {
   const [showNodePicker, setShowNodePicker] = useState(false);
   const [selectedNode, setSelectedNode] = useState(null);
   const [connectingFrom, setConnectingFrom] = useState(null);
+  const [showTestModal, setShowTestModal] = useState(false);
+  const [showExecutionPanel, setShowExecutionPanel] = useState(false);
+
+  // Workflow store
+  const {
+    getCurrentWorkflow,
+    updateWorkflow,
+    addNode: storeAddNode,
+    updateNodeConfig,
+    deleteNode: storeDeleteNode,
+    moveNode,
+    addConnection,
+    toggleActive,
+    save,
+    validate,
+    isDirty,
+    validationErrors,
+    executionState,
+    nodeStates,
+    executionLogs,
+  } = useWorkflowStore();
+
+  const workflow = getCurrentWorkflow();
+  const nodes = workflow?.nodes || [];
+  const connections = workflow?.connections || [];
 
   // Handle node drag end
-  const handleDragEnd = useCallback((event) => {
-    const { active, delta } = event;
-    if (!active) return;
+  const handleDragEnd = useCallback(
+    (event) => {
+      const { active, delta } = event;
+      if (!active) return;
 
-    setNodes((prev) =>
-      prev.map((node) =>
-        node.id === active.id
-          ? { ...node, x: node.x + delta.x, y: node.y + delta.y }
-          : node,
-      ),
-    );
-  }, []);
+      const node = nodes.find((n) => n.id === active.id);
+      if (node) {
+        moveNode(active.id, node.x + delta.x, node.y + delta.y);
+      }
+    },
+    [nodes, moveNode],
+  );
 
   // Handle canvas panning
   const handleMouseDown = useCallback(
@@ -149,7 +145,7 @@ function Automations() {
       ) {
         setIsPanning(true);
         setPanStart({ x: e.clientX - viewport.x, y: e.clientY - viewport.y });
-        setSelectedNode(null); // Deselect on canvas click
+        setSelectedNode(null);
       }
     },
     [viewport],
@@ -176,16 +172,13 @@ function Automations() {
   const handleCanvasDrop = useCallback(
     (e) => {
       e.preventDefault();
-
       try {
         const data = JSON.parse(e.dataTransfer.getData("application/json"));
-
         if (data.type === "new-node") {
           const rect = canvasRef.current.getBoundingClientRect();
           const x = (e.clientX - rect.left - viewport.x) / viewport.scale;
           const y = (e.clientY - rect.top - viewport.y) / viewport.scale;
-
-          addNode(data.nodeType, { x, y });
+          handleAddNode(data.nodeType, { x, y });
         }
       } catch (err) {
         // Not a valid drop
@@ -207,15 +200,8 @@ function Automations() {
 
   const handleEndConnection = (nodeId) => {
     if (connectingFrom && connectingFrom !== nodeId) {
-      // Check if connection already exists
-      const exists = connections.some(
-        (c) => c.from === connectingFrom && c.to === nodeId,
-      );
-      if (!exists) {
-        setConnections((prev) => [
-          ...prev,
-          { from: connectingFrom, to: nodeId },
-        ]);
+      const success = addConnection(connectingFrom, nodeId);
+      if (success) {
         toast.success("Nodes connected!");
       } else {
         toast.info("Connection already exists");
@@ -235,49 +221,36 @@ function Automations() {
   const resetView = () => setViewport({ x: 0, y: 0, scale: 1 });
 
   // Add new node
-  const addNode = (nodeTypeId, position) => {
-    const newNode = nodeRegistry.createInstance(
+  const handleAddNode = (nodeTypeId, position) => {
+    const newNode = storeAddNode(
       nodeTypeId,
-      position || {
-        x: 300 - viewport.x,
-        y: 200 - viewport.y,
-      },
+      position || { x: 300 - viewport.x, y: 200 - viewport.y },
     );
-
-    setNodes((prev) => [...prev, newNode]);
     setSelectedNode(newNode);
     toast.success(`Added ${nodeRegistry.get(nodeTypeId)?.name}`);
   };
 
   // Handle node selection from picker
   const handleNodePickerSelect = (nodeTypeId) => {
-    addNode(nodeTypeId);
+    handleAddNode(nodeTypeId);
     setShowNodePicker(false);
   };
 
   // Update node config
-  const updateNodeConfig = (nodeId, config) => {
-    setNodes((prev) =>
-      prev.map((node) => (node.id === nodeId ? { ...node, config } : node)),
-    );
-
-    // Update selected node reference
+  const handleUpdateNodeConfig = (nodeId, config) => {
+    updateNodeConfig(nodeId, config);
     setSelectedNode((prev) =>
       prev?.id === nodeId ? { ...prev, config } : prev,
     );
-
     toast.success("Node updated");
   };
 
   // Delete node
-  const deleteNode = (id) => {
-    setNodes((prev) => prev.filter((node) => node.id !== id));
-    setConnections((prev) => prev.filter((c) => c.from !== id && c.to !== id));
-
+  const handleDeleteNode = (id) => {
+    storeDeleteNode(id);
     if (selectedNode?.id === id) {
       setSelectedNode(null);
     }
-
     toast.success("Node deleted");
   };
 
@@ -286,14 +259,76 @@ function Automations() {
     setSelectedNode(node);
   };
 
+  // Save workflow
+  const handleSave = () => {
+    const result = save();
+    if (result.success) {
+      toast.success("Automation saved!");
+    } else {
+      toast.error(result.errors[0] || "Failed to save");
+    }
+  };
+
+  // Toggle active
+  const handleToggleActive = () => {
+    const result = toggleActive();
+    if (result.success) {
+      toast.success(
+        workflow?.isActive ? "Automation disabled" : "Automation enabled!",
+      );
+    } else {
+      toast.error(result.errors?.[0] || "Cannot enable automation");
+    }
+  };
+
+  // Open test modal
+  const handleTest = () => {
+    const validation = validate();
+    if (!validation.valid) {
+      toast.error(validation.errors[0]);
+      return;
+    }
+    setShowTestModal(true);
+    setShowExecutionPanel(true);
+  };
+
   return (
     <div className="h-screen -m-8 flex flex-col overflow-hidden bg-[#0a0a0f]">
       {/* Toolbar */}
       <div className="h-14 border-b border-white/10 bg-black/40 backdrop-blur-sm flex items-center justify-between px-4 shrink-0">
         <div className="flex items-center gap-4">
-          <h1 className="text-lg font-semibold text-white">
-            Automations Builder
-          </h1>
+          {/* Workflow Name & Status */}
+          <div className="flex items-center gap-3">
+            <h1 className="text-lg font-semibold text-white">
+              {workflow?.name || "Untitled"}
+            </h1>
+
+            {/* Status Badge */}
+            <div
+              className={`
+              px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider flex items-center gap-1
+              ${
+                workflow?.isActive
+                  ? "bg-green-500/20 text-green-400"
+                  : isDirty
+                    ? "bg-yellow-500/20 text-yellow-400"
+                    : "bg-white/10 text-muted-foreground"
+              }
+            `}
+            >
+              {workflow?.isActive ? (
+                <>
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+                  Active
+                </>
+              ) : isDirty ? (
+                "Unsaved"
+              ) : (
+                "Draft"
+              )}
+            </div>
+          </div>
+
           <div className="h-6 w-px bg-white/10" />
 
           {/* Toggle Node Picker */}
@@ -303,13 +338,24 @@ function Automations() {
             className={`h-8 ${
               showNodePicker
                 ? "bg-purple-500 hover:bg-purple-600 text-white"
-                : "border-purple-500/30 bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 hover:text-purple-500"
+                : "border-purple-500/30 bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 hover:text-white"
             }`}
             onClick={() => setShowNodePicker(!showNodePicker)}
           >
             <Plus className="w-3.5 h-3.5 mr-1" />
             Add Node
           </Button>
+
+          {/* Validation Errors */}
+          {validationErrors.length > 0 && (
+            <div className="flex items-center gap-2 text-sm text-red-400">
+              <AlertCircle className="w-4 h-4" />
+              <span>
+                {validationErrors.length} issue
+                {validationErrors.length > 1 ? "s" : ""}
+              </span>
+            </div>
+          )}
 
           {connectingFrom && (
             <div className="flex items-center gap-2 text-sm text-purple-400 animate-pulse">
@@ -359,12 +405,49 @@ function Automations() {
 
           <div className="h-6 w-px bg-white/10" />
 
+          {/* Toggle Execution Panel */}
+          {executionLogs.length > 0 && (
+            <Button
+              size="icon"
+              variant="ghost"
+              className={`h-8 w-8 ${showExecutionPanel ? "text-purple-400" : ""}`}
+              onClick={() => setShowExecutionPanel(!showExecutionPanel)}
+            >
+              <Terminal className="w-4 h-4" />
+            </Button>
+          )}
+
+          {/* ON/OFF Toggle */}
+          <Button
+            size="sm"
+            variant="outline"
+            className={`h-8 ${
+              workflow?.isActive
+                ? " text-green-400 hover:bg-transparent hover:text-green-400/50"
+                : "border-white/10 text-muted-foreground hover:text-white hover:bg-transparent"
+            }`}
+            onClick={handleToggleActive}
+          >
+            <Power className="w-3.5 h-3.5 mr-1" />
+            {workflow?.isActive ? "ON" : "OFF"}
+          </Button>
+
           {/* Action Buttons */}
-          <Button size="sm" variant="outline" className="h-8 border-white/10 bg-transparent hover:bg-transparent hover:text-white/50">
+          <Button
+            size="sm"
+            variant="outline"
+            className={`h-8 border-white/10 ${isDirty ? "text-yellow-400 border-yellow-500/30 bg-yellow-500/10 hover:bg-yellow-500/20 hover:text-yellow-400/50" : "text-muted-foreground hover:bg-transparent hover:text-white"}`}
+            onClick={handleSave}
+          >
             <Save className="w-3.5 h-3.5 mr-1" />
             Save
           </Button>
-          <Button size="sm" className="h-8 bg-transparent hover:bg-transparent hover:text-green-500/50 text-green-500">
+
+          <Button
+            size="sm"
+            className="h-8 bg-transparent hover:bg-transparent hover:text-purple-400"
+            onClick={handleTest}
+          >
             <Play className="w-3.5 h-3.5 mr-1" />
             Test
           </Button>
@@ -400,9 +483,7 @@ function Automations() {
           <div
             className="canvas-grid absolute inset-0"
             style={{
-              backgroundImage: `
-                radial-gradient(circle at 1px 1px, rgba(255,255,255,0.05) 1px, transparent 0)
-              `,
+              backgroundImage: `radial-gradient(circle at 1px 1px, rgba(255,255,255,0.05) 1px, transparent 0)`,
               backgroundSize: "30px 30px",
               backgroundPosition: `${viewport.x % 30}px ${viewport.y % 30}px`,
             }}
@@ -439,8 +520,9 @@ function Automations() {
                   node={node}
                   isSelected={selectedNode?.id === node.id}
                   isConnecting={connectingFrom !== null}
+                  executionState={nodeStates[node.id] || "idle"}
                   onSelect={handleSelectNode}
-                  onDelete={deleteNode}
+                  onDelete={handleDeleteNode}
                   onStartConnection={handleStartConnection}
                   onEndConnection={handleEndConnection}
                 />
@@ -452,21 +534,22 @@ function Automations() {
           {nodes.length === 0 && (
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="text-center">
-                <div className="w-16 h-16 rounded-full bg-purple-500/10 flex items-center justify-center mx-auto mb-4">
-                  <Plus className="w-8 h-8 text-purple-500" />
+                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-purple-500/20 to-purple-500/5 flex items-center justify-center mx-auto mb-6 border border-purple-500/20">
+                  <Plus className="w-10 h-10 text-purple-400" />
                 </div>
-                <h3 className="text-lg font-semibold text-white mb-2">
-                  No automations yet
+                <h3 className="text-xl font-semibold text-white mb-2">
+                  Start building your automation
                 </h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Click "Add Node" to get started
+                <p className="text-sm text-muted-foreground mb-6 max-w-sm">
+                  Add a trigger to define when your automation runs, then add
+                  actions to define what happens.
                 </p>
                 <Button
-                  className="bg-purple-500 hover:bg-purple-600"
+                  className="bg-purple-500 hover:bg-purple-600 px-6"
                   onClick={() => setShowNodePicker(true)}
                 >
                   <Plus className="w-4 h-4 mr-2" />
-                  Add Your First Node
+                  Add Trigger
                 </Button>
               </div>
             </div>
@@ -477,12 +560,24 @@ function Automations() {
         {selectedNode && (
           <PropertyPanel
             nodeInstance={selectedNode}
-            onUpdate={updateNodeConfig}
-            onDelete={deleteNode}
+            onUpdate={handleUpdateNodeConfig}
+            onDelete={handleDeleteNode}
             onClose={() => setSelectedNode(null)}
           />
         )}
+
+        {/* Execution Panel */}
+        <ExecutionPanel
+          isOpen={showExecutionPanel}
+          onClose={() => setShowExecutionPanel(false)}
+        />
       </div>
+
+      {/* Test Modal */}
+      <TestModal
+        isOpen={showTestModal}
+        onClose={() => setShowTestModal(false)}
+      />
     </div>
   );
 }
