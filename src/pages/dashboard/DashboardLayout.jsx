@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Outlet, NavLink, useLocation } from "react-router-dom";
+import { Outlet, NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   Inbox,
@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "../../contexts/AuthContext";
 import "./Dashboard.css";
 
 const navigation = [
@@ -31,7 +32,30 @@ const navigation = [
 
 function DashboardLayout() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const [isCollapsed, setIsCollapsed] = useState(true);
+
+  const handleLogout = () => {
+    logout();
+    navigate("/dashboard/login");
+  };
+
+  // Get user initials for avatar
+  const getInitials = () => {
+    if (user?.name) {
+      return user.name
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2);
+    }
+    if (user?.email) {
+      return user.email.slice(0, 2).toUpperCase();
+    }
+    return "U";
+  };
 
   return (
     <div className="dashboard-container">
@@ -80,22 +104,41 @@ function DashboardLayout() {
             <div className="user-info">
               <Avatar className="h-9 w-9">
                 <AvatarImage src="" alt="User" />
-                <AvatarFallback>JD</AvatarFallback>
+                <AvatarFallback>{getInitials()}</AvatarFallback>
               </Avatar>
               <div className="user-details">
-                <p className="user-name">John Doe</p>
-                <p className="user-email">john@example.com</p>
+                <p className="user-name">
+                  {user?.name || user?.email?.split("@")[0] || "User"}
+                </p>
+                <p className="user-email">{user?.email || ""}</p>
               </div>
             </div>
           )}
           {isCollapsed && (
-            <Avatar className="h-9 w-9">
+            <Avatar className="h-9 w-9" title={user?.email}>
               <AvatarImage src="" alt="User" />
-              <AvatarFallback>JD</AvatarFallback>
+              <AvatarFallback>{getInitials()}</AvatarFallback>
             </Avatar>
           )}
+          {isCollapsed && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="logout-btn"
+              onClick={handleLogout}
+              title="Logout"
+            >
+              <LogOut className="w-4 h-4" />
+            </Button>
+          )}
           {!isCollapsed && (
-            <Button variant="ghost" size="icon" className="logout-btn">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="logout-btn"
+              onClick={handleLogout}
+              title="Logout"
+            >
               <LogOut className="w-4 h-4" />
             </Button>
           )}

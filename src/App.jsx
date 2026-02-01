@@ -16,6 +16,10 @@ import Inbox from "./pages/dashboard/Inbox";
 import Automations from "./pages/dashboard/Automations";
 import QuickReplies from "./pages/dashboard/QuickReplies";
 import Settings from "./pages/dashboard/Settings";
+import DashboardLogin from "./pages/dashboard/DashboardLogin";
+
+// Auth
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   const location = useLocation();
@@ -33,8 +37,18 @@ function App() {
           <Route path="/terms" element={<TermsOfService />} />
           <Route path="/data-deletion" element={<DataDeletion />} />
 
-          {/* Dashboard Routes */}
-          <Route path="/dashboard" element={<DashboardLayout />}>
+          {/* Dashboard Login */}
+          <Route path="/dashboard/login" element={<DashboardLogin />} />
+
+          {/* Protected Dashboard Routes */}
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <DashboardLayout />
+              </ProtectedRoute>
+            }
+          >
             <Route index element={<Dashboard />} />
             <Route path="inbox" element={<Inbox />} />
             <Route path="automations" element={<Automations />} />
