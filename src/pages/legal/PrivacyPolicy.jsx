@@ -151,7 +151,7 @@ const PrivacyPolicy = () => {
           </ul>
           <p>
             To exercise these rights, please contact us at{" "}
-            <a href="mailto:privacy@zyllo.tech">privacy@zyllo.tech</a>.
+            <a href="mailto:contact@zyllo.tech">contact@zyllo.tech</a>.
           </p>
 
           <h2>8. Third-Party Links</h2>
@@ -182,7 +182,7 @@ const PrivacyPolicy = () => {
             <p>
               <strong>Zyllo</strong>
               <br />
-              Email: <a href="mailto:privacy@zyllo.tech">privacy@zyllo.tech</a>
+              Email: <a href="mailto:contact@zyllo.tech">contact@zyllo.tech</a>
               <br />
               Website: <a href="https://zyllo.tech">zyllo.tech</a>
             </p>

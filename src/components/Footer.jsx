@@ -19,7 +19,7 @@ const Footer = () => {
             Data Deletion
           </Link>
           <span className="footer-divider">•</span>
-          <a href="mailto:support@zyllo.tech" className="footer-link">
+          <a href="mailto:contact@zyllo.tech" className="footer-link">
             Support
           </a>
         </div>

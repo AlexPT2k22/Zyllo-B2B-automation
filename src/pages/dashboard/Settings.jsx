@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { instagramService } from "@/lib/instagramService";
+import { tiktokService } from "@/lib/tiktokService";
 import { toast } from "sonner";
 
 const settingsSections = [
@@ -68,8 +69,10 @@ const settingsSections = [
 function Settings() {
   const { user } = useAuth();
   const [instagramAccount, setInstagramAccount] = useState(null);
+  const [tiktokAccount, setTiktokAccount] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isDisconnecting, setIsDisconnecting] = useState(false);
+  const [isTiktokDisconnecting, setIsTiktokDisconnecting] = useState(false);
 
   useEffect(() => {
     checkConnection();
@@ -77,12 +80,23 @@ function Settings() {
 
   const checkConnection = async () => {
     setIsLoading(true);
-    const result = await instagramService.checkConnection();
-    if (result.connected) {
-      setInstagramAccount(result.account);
+
+    // Check Instagram
+    const igResult = await instagramService.checkConnection();
+    if (igResult.connected) {
+      setInstagramAccount(igResult.account);
     } else {
       setInstagramAccount(null);
     }
+
+    // Check TikTok
+    const ttResult = await tiktokService.checkConnection();
+    if (ttResult.connected) {
+      setTiktokAccount(ttResult.account);
+    } else {
+      setTiktokAccount(null);
+    }
+
     setIsLoading(false);
   };
 
@@ -113,6 +127,35 @@ function Settings() {
       toast.error("Failed to disconnect: " + result.error);
     }
     setIsDisconnecting(false);
+  };
+
+  const handleTiktokConnect = async () => {
+    try {
+      const url = await tiktokService.getAuthUrl();
+      window.location.href = url;
+    } catch (e) {
+      toast.error("Failed to start TikTok connection: " + e.message);
+    }
+  };
+
+  const handleTiktokDisconnect = async () => {
+    if (
+      !confirm(
+        "Are you sure you want to disconnect your TikTok account? Automations will stop working.",
+      )
+    )
+      return;
+
+    setIsTiktokDisconnecting(true);
+    const result = await tiktokService.disconnect();
+
+    if (result.success) {
+      setTiktokAccount(null);
+      toast.success("TikTok account disconnected");
+    } else {
+      toast.error("Failed to disconnect: " + result.error);
+    }
+    setIsTiktokDisconnecting(false);
   };
 
   return (
@@ -198,6 +241,71 @@ function Settings() {
                 >
                   <Instagram className="w-4 h-4 mr-2" />
                   Connect Invoice Logic
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* TikTok Connection */}
+        <Card className="connected-card">
+          <CardHeader>
+            <CardTitle className="connected-title">TikTok Connection</CardTitle>
+            <CardDescription>
+              {tiktokAccount
+                ? "Your TikTok account for automation"
+                : "Connect your TikTok account to enable automations"}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <div className="p-4 flex justify-center">
+                <Loader2 className="animate-spin text-purple-500" />
+              </div>
+            ) : tiktokAccount ? (
+              <div className="connected-account">
+                <div className="account-info">
+                  <div className="tiktok-icon">
+                    <img
+                      src="/icons8-tiktok.svg"
+                      alt="TikTok"
+                      className="w-5 h-5"
+                    />
+                  </div>
+                  <div>
+                    <p className="account-username">
+                      @{tiktokAccount.username}
+                    </p>
+                    <p className="account-followers">
+                      {tiktokAccount.display_name || tiktokAccount.username}
+                    </p>
+                  </div>
+                </div>
+                <div className="account-status">
+                  <Check className="w-4 h-4 text-green-500" />
+                  <span>Connected</span>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center p-6 bg-secondary/20 rounded-lg border border-dashed border-white/10">
+                <img
+                  src="/icons8-tiktok.svg"
+                  alt="TikTok"
+                  className="w-8 h-8 mb-3 opacity-50"
+                />
+                <p className="text-sm text-muted-foreground mb-4 text-center">
+                  Connect your TikTok Business account to use automations.
+                </p>
+                <Button
+                  onClick={handleTiktokConnect}
+                  className="bg-black hover:bg-gray-900 text-white border border-white/20"
+                >
+                  <img
+                    src="/icons8-tiktok.svg"
+                    alt=""
+                    className="w-4 h-4 mr-2"
+                  />
+                  Connect TikTok
                 </Button>
               </div>
             )}
@@ -314,6 +422,17 @@ function Settings() {
           justify-content: center;
         }
 
+        .tiktok-icon {
+          width: 40px;
+          height: 40px;
+          background: #000000;
+          border-radius: 10px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
         .account-username {
           font-size: 0.875rem;
           font-weight: 600;
@@ -393,6 +512,26 @@ function Settings() {
                     disabled={isDisconnecting}
                   >
                     {isDisconnecting ? "Disconnecting..." : "Disconnect"}
+                  </Button>
+                </div>
+              )}
+              {tiktokAccount && (
+                <div className="danger-item flex items-center justify-between p-4 bg-red-900/20 rounded-lg border border-red-900/30">
+                  <div>
+                    <p className="danger-action-title font-medium text-white">
+                      Disconnect TikTok
+                    </p>
+                    <p className="danger-action-desc text-xs text-red-300/70">
+                      Remove your TikTok connection
+                    </p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    className="danger-btn border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
+                    onClick={handleTiktokDisconnect}
+                    disabled={isTiktokDisconnecting}
+                  >
+                    {isTiktokDisconnecting ? "Disconnecting..." : "Disconnect"}
                   </Button>
                 </div>
               )}

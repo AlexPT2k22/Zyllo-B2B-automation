@@ -130,7 +130,7 @@ const DataDeletion = () => {
                   }}
                 >
                   Something went wrong. Please try again or contact us at
-                  privacy@zyllo.tech
+                  contact@zyllo.tech
                 </p>
               )}
             </form>
@@ -141,7 +141,7 @@ const DataDeletion = () => {
           <ul>
             <li>
               Emailing us directly at{" "}
-              <a href="mailto:privacy@zyllo.tech">privacy@zyllo.tech</a>
+              <a href="mailto:contact@zyllo.tech">contact@zyllo.tech</a>
             </li>
             <li>
               Deleting your account from within the app settings (if you have an

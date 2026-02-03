@@ -179,7 +179,7 @@ const TermsOfService = () => {
             <p>
               <strong>Zyllo</strong>
               <br />
-              Email: <a href="mailto:legal@zyllo.tech">legal@zyllo.tech</a>
+              Email: <a href="mailto:contact@zyllo.tech">contact@zyllo.tech</a>
               <br />
               Website: <a href="https://zyllo.tech">zyllo.tech</a>
             </p>
