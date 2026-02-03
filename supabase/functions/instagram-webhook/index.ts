@@ -55,12 +55,27 @@ serve(async (req) => {
       const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
       const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+      // DEBUG: Log raw event to verify receipt
+      try {
+          await supabase.from("webhook_logs").insert({ body: body });
+      } catch (logErr) {
+          console.error("Failed to log raw webhook:", logErr);
+      }
+
       // Process the webhook event
       if (body.object === "instagram") {
         for (const entry of body.entry || []) {
           // Handle messaging events
           if (entry.messaging) {
             for (const event of entry.messaging) {
+              await processMessagingEvent(supabase, event);
+            }
+          }
+
+          // Handle standby events (when app is not primary receiver)
+          if (entry.standby) {
+            console.log("Received standby event");
+             for (const event of entry.standby) {
               await processMessagingEvent(supabase, event);
             }
           }
@@ -107,12 +122,14 @@ async function processMessagingEvent(supabase: any, event: any) {
   }
 
   // Store the incoming message
+  // Note: Meta sends timestamp as a string in seconds, we need to convert to ms
+  const timestampMs = typeof timestamp === 'string' ? parseInt(timestamp, 10) * 1000 : timestamp;
   const { error } = await supabase.from("instagram_messages").insert({
     sender_id: senderId,
     recipient_id: recipientId,
     message_id: message.mid,
     message_text: message.text,
-    timestamp: new Date(timestamp).toISOString(),
+    timestamp: new Date(timestampMs).toISOString(),
     direction: "inbound",
     processed: false,
   });
@@ -124,37 +141,108 @@ async function processMessagingEvent(supabase: any, event: any) {
   }
 
   // 1. Find the Instagram account owner
-  const { data: account } = await supabase
+  console.log("[DEBUG] Step 1: Looking up Instagram account for recipientId:", recipientId);
+  const { data: account, error: accountError } = await supabase
     .from("instagram_accounts")
     .select("user_id, access_token")
-    .eq("instagram_user_id", recipientId) // recipient is the business account
+    .eq("instagram_user_id", recipientId)
     .single();
 
+  if (accountError) {
+    console.error("[DEBUG] Error finding account:", accountError);
+  }
+
   if (!account) {
-    console.log("No linked Instagram account found for recipient:", recipientId);
+    console.log("[DEBUG] No linked Instagram account found for recipient:", recipientId);
+    return;
+  }
+  console.log("[DEBUG] Found account, user_id:", account.user_id);
+
+  // 1.5 Get User Email (because automations table might use email instead of user_id)
+  const { data: { user }, error: userError } = await supabase.auth.admin.getUserById(account.user_id);
+  
+  if (userError || !user || !user.email) {
+      console.error("Could not fetch user email for ID:", account.user_id);
+       await supabase.from("activity_log").insert({
+        user_id: account.user_id,
+        action_type: "automation_error",
+        description: "Failed to resolve user email from account ID",
+        metadata: { sender_id: senderId, internal_error: userError }
+    });
     return;
   }
 
-  // 2. Fetch active automations for this user
-  const { data: workflows } = await supabase
+  const userEmail = user.email;
+  console.log(`Resolved User Email: ${userEmail}`);
+
+  // 2. Fetch active automations via Email OR User ID (Try both to be safe)
+  // We use .or() to match either user_id OR user_email if columns exist
+  // But strictly speaking, we suspect it's user_email.
+  // Let's try fetching all rows for this email.
+  console.log("[DEBUG] Step 3: Searching automations for email:", userEmail);
+  const { data: workflows, error: workflowError } = await supabase
     .from("automations")
     .select("*")
-    .eq("user_id", account.user_id)
-    .eq("isActive", true);
+    .eq("user_email", userEmail);
+
+  if (workflowError) {
+      console.error("[DEBUG] Error searching automations:", workflowError);
+  }
+  console.log("[DEBUG] Found workflows:", workflows?.length || 0);
 
   if (!workflows || workflows.length === 0) {
-    console.log("No active automations for user");
+    console.log("No automations found for user (active or inactive)");
+    // Log warning
+    await supabase.from("activity_log").insert({
+        user_id: account.user_id,
+        action_type: "system_warning",
+        description: "Received message but USER HAS NO AUTOMATIONS at all",
+        metadata: { sender_id: senderId }
+    });
     return;
   }
 
-  console.log(`Checking ${workflows.length} active automations...`);
+  // Filter active ones manually and log
+  console.log("[DEBUG] Step 4: Filtering active workflows. Raw data:", workflows.map((w: any) => ({ name: w.name, is_active: w.is_active, type: typeof w.is_active })));
+  const activeWorkflows = workflows.filter((w: any) => {
+      // Check for any truthy value
+      const active = w.is_active;
+      return active === true || active === 1 || active === "true" || active === "TRUE" || active === "1";
+  });
+  console.log("[DEBUG] Active workflows after filter:", activeWorkflows.length);
+  
+  if (activeWorkflows.length === 0) {
+      console.log(`Found ${workflows.length} automations but NONE are active.`);
+       await supabase.from("activity_log").insert({
+        user_id: account.user_id,
+        action_type: "system_warning",
+        description: `Found ${workflows.length} automations but NONE are active`,
+        metadata: { 
+            sender_id: senderId,
+            statuses: workflows.map((w: any) => ({ 
+                name: w.name, 
+                isActive: w.isActive, 
+                is_active: w.is_active 
+            }))
+        }
+    });
+    return;
+  }
+
+  const workflowsToRun = activeWorkflows;
+
+  if (!workflowsToRun || workflowsToRun.length === 0) {
+     return;
+  }
+
+  console.log(`Checking ${workflowsToRun.length} active automations...`);
 
   // 3. Check triggers
-  for (const workflow of workflows) {
+  for (const workflow of workflowsToRun) {
     const nodes = workflow.nodes || [];
     const connections = workflow.connections || [];
     const triggerNode = nodes.find((n: any) => n.nodeType === "keyword_match" || n.nodeType === "any_message");
-
+    
     if (!triggerNode) continue;
 
     let shouldRun = false;
@@ -175,7 +263,6 @@ async function processMessagingEvent(supabase: any, event: any) {
         console.log(`Trigger matched: ${workflow.name}`);
         
         // Find next node (Action)
-        // Simplification: Assumes 1 connection from trigger
         const connection = connections.find((c: any) => c.from === triggerNode.id);
         if (connection) {
             const nextNode = nodes.find((n: any) => n.id === connection.to);
@@ -184,25 +271,44 @@ async function processMessagingEvent(supabase: any, event: any) {
                 const replyText = nextNode.config?.message;
                 if (replyText) {
                     // Send Reply
-                    await sendReply(account.access_token, senderId, replyText);
+                    const result = await sendReply(account.access_token, senderId, replyText);
                     
-                    // Log execution
-                    await supabase.from("activity_log").insert({
-                        user_id: account.user_id,
-                        action_type: "automation_run",
-                        description: `Auto-replied to message via ${workflow.name}`,
-                        metadata: {
-                            workflow_id: workflow.id,
-                            workflow_name: workflow.name,
-                            contact_id: senderId,
-                            status: "success"
-                        }
-                    });
+                    if (result.success) {
+                        // Log execution
+                        await supabase.from("activity_log").insert({
+                            user_id: account.user_id,
+                            action_type: "automation_run",
+                            description: `Auto-replied to message via ${workflow.name}`,
+                            metadata: {
+                                workflow_id: workflow.id,
+                                workflow_name: workflow.name,
+                                contact_id: senderId,
+                                status: "success"
+                            }
+                        });
+                        // Mark message as processed
+                        await supabase.from("instagram_messages")
+                            .update({ processed: true })
+                            .eq("message_id", message.mid);
+                    } else {
+                         // Log failure
+                         await supabase.from("activity_log").insert({
+                            user_id: account.user_id,
+                            action_type: "automation_error",
+                            description: `Failed to send reply for ${workflow.name}`,
+                            metadata: {
+                                workflow_id: workflow.id,
+                                contact_id: senderId,
+                                status: "failed_api_call",
+                                error_details: result.error
+                            }
+                        });
+                    }
                 }
             }
         }
         
-        // Stop after first matching workflow (optional rule)
+        // Stop after first matching workflow
         break; 
     }
   }
@@ -223,11 +329,14 @@ async function sendReply(accessToken: string, recipientId: string, text: string)
         if (!response.ok) {
             const err = await response.text();
             console.error("Failed to send reply:", err);
+            return { success: false, error: err };
         } else {
             console.log("Reply sent successfully");
+            return { success: true };
         }
     } catch (e) {
         console.error("Error sending reply:", e);
+        return { success: false, error: e.message };
     }
 }
 
@@ -243,6 +352,14 @@ async function processChangeEvent(supabase: any, change: any) {
     case "comments":
       console.log("New comment received:", value);
       // TODO: Process comment and check automation rules
+      break;
+    
+    case "messages":
+      console.log("Received 'messages' event via 'changes' listener. Forwarding...");
+      // The structure in 'changes' for messages might be slightly different or just contain the same event object
+      // The log showed: value: { sender: { id: "..." }, recipient: { ... } }
+      // This matches the 'event' object expected by processMessagingEvent
+      await processMessagingEvent(supabase, value);
       break;
 
     case "mentions":
