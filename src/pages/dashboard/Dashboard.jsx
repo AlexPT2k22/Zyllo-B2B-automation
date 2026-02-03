@@ -34,7 +34,6 @@ import {
   TrendingDown,
   MessageSquare,
   Clock,
-  Zap,
   Users,
   ArrowUpRight,
 } from "lucide-react";
@@ -44,6 +43,8 @@ import {
   ChartContainer,
 } from "@/components/ui/chart";
 import { CountUp } from "@/components/ui/count-up";
+import { useAutomationStats } from "@/hooks/useAutomationStats";
+import { Zap, Activity, CheckCircle } from "lucide-react";
 
 // Mock data for charts (3 months)
 const chartData = [
@@ -181,41 +182,6 @@ const recentMessages = [
   },
 ];
 
-const stats = [
-  {
-    title: "Total DMs",
-    value: "2,847",
-    change: "+12.5%",
-    trend: "up",
-    icon: MessageSquare,
-    description: "vs last week",
-  },
-  {
-    title: "Response Rate",
-    value: "94.2%",
-    change: "+3.1%",
-    trend: "up",
-    icon: Zap,
-    description: "vs last week",
-  },
-  {
-    title: "Avg. Response Time",
-    value: "1.4 min",
-    change: "-18%",
-    trend: "up",
-    icon: Clock,
-    description: "vs last week",
-  },
-  {
-    title: "Active Conversations",
-    value: "156",
-    change: "+24",
-    trend: "up",
-    icon: Users,
-    description: "currently active",
-  },
-];
-
 const chartConfig = {
   value: {
     label: "Value",
@@ -236,6 +202,43 @@ const chartConfig = {
 
 function Dashboard() {
   const [timeRange, setTimeRange] = useState("7d");
+  const { totalRuns, successRate, avgDuration, isLoading } =
+    useAutomationStats(7);
+
+  const stats = [
+    {
+      title: "Total DMs",
+      value: "2,847",
+      change: "+12.5%",
+      trend: "up",
+      icon: MessageSquare,
+      description: "vs last week",
+    },
+    {
+      title: "Automation Runs",
+      value: isLoading ? "..." : totalRuns.toString(),
+      change: isLoading ? "..." : totalRuns > 0 ? "+100%" : "0%", // Mock change
+      trend: "up",
+      icon: Zap,
+      description: "last 7 days",
+    },
+    {
+      title: "Success Rate",
+      value: isLoading ? "..." : `${successRate}%`,
+      change: successRate > 90 ? "+2%" : "-5%", // Mock change
+      trend: successRate > 90 ? "up" : "down",
+      icon: CheckCircle,
+      description: "execution reliability",
+    },
+    {
+      title: "Avg. Duration",
+      value: isLoading ? "..." : `${avgDuration}ms`,
+      change: "-12ms",
+      trend: "down", // down is good for duration
+      icon: Clock,
+      description: "per execution",
+    },
+  ];
 
   const filteredData = chartData.filter((item) => {
     const date = new Date(item.date);

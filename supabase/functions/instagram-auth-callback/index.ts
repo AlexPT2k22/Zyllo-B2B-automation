@@ -9,9 +9,10 @@ const corsHeaders = {
 
 const INSTAGRAM_APP_ID = Deno.env.get("INSTAGRAM_APP_ID")!;
 const INSTAGRAM_APP_SECRET = Deno.env.get("INSTAGRAM_APP_SECRET")!;
-const REDIRECT_URI = "https://zyllo.tech/auth/instagram/callback";
-const FRONTEND_SUCCESS_URL = "https://zyllo.tech/dashboard?connected=instagram";
-const FRONTEND_ERROR_URL = "https://zyllo.tech/dashboard?error=instagram_auth_failed";
+// Matches what is sent in instagramService.js
+const REDIRECT_URI = "https://nfapcfclofdycraqyipe.supabase.co/functions/v1/instagram-auth-callback"; 
+const FRONTEND_SUCCESS_URL = "http://localhost:5173/dashboard?connected=instagram";
+const FRONTEND_ERROR_URL = "http://localhost:5173/dashboard?error=instagram_auth_failed";
 
 serve(async (req) => {
   const url = new URL(req.url);
@@ -88,7 +89,14 @@ serve(async (req) => {
 
     const accessToken = longLivedData?.access_token || tokenData.access_token;
     const expiresIn = longLivedData?.expires_in || 3600; // 1 hour for short-lived
-    const userId = tokenData.user_id;
+    const instagramUserId = tokenData.user_id;
+
+    // Get Supabase User ID from state param
+    const supabaseUserId = url.searchParams.get("state");
+    
+    if (!supabaseUserId) {
+        throw new Error("Missing state parameter (User ID)");
+    }
 
     console.log("Access token obtained, fetching user profile...");
 
@@ -119,7 +127,7 @@ serve(async (req) => {
     const { data: existingAccount, error: fetchError } = await supabase
       .from("instagram_accounts")
       .select("*")
-      .eq("instagram_user_id", userId)
+      .eq("instagram_user_id", instagramUserId)
       .single();
 
     if (existingAccount) {
@@ -127,14 +135,15 @@ serve(async (req) => {
       const { error: updateError } = await supabase
         .from("instagram_accounts")
         .update({
-          username: profileData.username,
-          access_token: accessToken,
-          token_expires_at: tokenExpiry.toISOString(),
-          account_type: profileData.account_type,
-          media_count: profileData.media_count,
-          updated_at: new Date().toISOString(),
+            user_id: supabaseUserId, // Ensure mapped to correct user
+            username: profileData.username,
+            access_token: accessToken,
+            token_expires_at: tokenExpiry.toISOString(),
+            account_type: profileData.account_type,
+            media_count: profileData.media_count,
+            updated_at: new Date().toISOString(),
         })
-        .eq("instagram_user_id", userId);
+        .eq("instagram_user_id", instagramUserId);
 
       if (updateError) {
         console.error("Error updating account:", updateError);
@@ -146,7 +155,8 @@ serve(async (req) => {
       const { error: insertError } = await supabase
         .from("instagram_accounts")
         .insert({
-          instagram_user_id: userId,
+          user_id: supabaseUserId,
+          instagram_user_id: instagramUserId,
           username: profileData.username,
           access_token: accessToken,
           token_expires_at: tokenExpiry.toISOString(),

@@ -123,8 +123,112 @@ async function processMessagingEvent(supabase: any, event: any) {
     console.log("Message stored successfully");
   }
 
-  // TODO: Check automation rules and send auto-reply if matching
-  // This will be implemented in a separate function
+  // 1. Find the Instagram account owner
+  const { data: account } = await supabase
+    .from("instagram_accounts")
+    .select("user_id, access_token")
+    .eq("instagram_user_id", recipientId) // recipient is the business account
+    .single();
+
+  if (!account) {
+    console.log("No linked Instagram account found for recipient:", recipientId);
+    return;
+  }
+
+  // 2. Fetch active automations for this user
+  const { data: workflows } = await supabase
+    .from("automations")
+    .select("*")
+    .eq("user_id", account.user_id)
+    .eq("isActive", true);
+
+  if (!workflows || workflows.length === 0) {
+    console.log("No active automations for user");
+    return;
+  }
+
+  console.log(`Checking ${workflows.length} active automations...`);
+
+  // 3. Check triggers
+  for (const workflow of workflows) {
+    const nodes = workflow.nodes || [];
+    const connections = workflow.connections || [];
+    const triggerNode = nodes.find((n: any) => n.nodeType === "keyword_match" || n.nodeType === "any_message");
+
+    if (!triggerNode) continue;
+
+    let shouldRun = false;
+
+    // Check Trigger Condition
+    if (triggerNode.nodeType === "any_message") {
+      shouldRun = true;
+    } else if (triggerNode.nodeType === "keyword_match") {
+        const keywords = (triggerNode.config?.keywords || "").split(",").map((k: string) => k.trim().toLowerCase());
+        const msgText = (message.text || "").toLowerCase();
+        // Simple "contains" match
+        if (keywords.some((k: string) => k && msgText.includes(k))) {
+            shouldRun = true;
+        }
+    }
+
+    if (shouldRun) {
+        console.log(`Trigger matched: ${workflow.name}`);
+        
+        // Find next node (Action)
+        // Simplification: Assumes 1 connection from trigger
+        const connection = connections.find((c: any) => c.from === triggerNode.id);
+        if (connection) {
+            const nextNode = nodes.find((n: any) => n.id === connection.to);
+            
+            if (nextNode && nextNode.nodeType === "send_reply") {
+                const replyText = nextNode.config?.message;
+                if (replyText) {
+                    // Send Reply
+                    await sendReply(account.access_token, senderId, replyText);
+                    
+                    // Log execution
+                    await supabase.from("activity_log").insert({
+                        user_id: account.user_id,
+                        action_type: "automation_run",
+                        description: `Auto-replied to message via ${workflow.name}`,
+                        metadata: {
+                            workflow_id: workflow.id,
+                            workflow_name: workflow.name,
+                            contact_id: senderId,
+                            status: "success"
+                        }
+                    });
+                }
+            }
+        }
+        
+        // Stop after first matching workflow (optional rule)
+        break; 
+    }
+  }
+}
+
+async function sendReply(accessToken: string, recipientId: string, text: string) {
+    try {
+        const url = `https://graph.instagram.com/v18.0/me/messages?access_token=${accessToken}`;
+        const response = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                recipient: { id: recipientId },
+                message: { text: text }
+            })
+        });
+        
+        if (!response.ok) {
+            const err = await response.text();
+            console.error("Failed to send reply:", err);
+        } else {
+            console.log("Reply sent successfully");
+        }
+    } catch (e) {
+        console.error("Error sending reply:", e);
+    }
 }
 
 // Process change events (comments, mentions, etc.)

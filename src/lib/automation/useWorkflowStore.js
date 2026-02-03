@@ -8,6 +8,7 @@ import { create } from "zustand";
 import { nodeRegistry } from "./nodeRegistry";
 import { automationEngine } from "./engine";
 import * as automationService from "./automationService";
+import { logService } from "./logService";
 
 // Generate unique ID
 const generateId = () =>
@@ -197,8 +198,13 @@ export const useWorkflowStore = create((set, get) => ({
   },
 
   // Node operations
-  addNode: (nodeTypeId, position) => {
-    const newNode = nodeRegistry.createInstance(nodeTypeId, position);
+  addNode: (nodeTypeId, position, id = null, customConfig = {}) => {
+    const newNode = nodeRegistry.createInstance(
+      nodeTypeId,
+      position,
+      id,
+      customConfig,
+    );
     get().updateWorkflow({
       nodes: [...(get().getCurrentWorkflow()?.nodes || []), newNode],
     });
@@ -413,6 +419,18 @@ export const useWorkflowStore = create((set, get) => ({
       });
 
       set({ executionState: "success" });
+
+      // Log success
+      logService.logExecution({
+        userEmail: get().userEmail,
+        workflowId: workflow.id,
+        workflowName: workflow.name,
+        status: "success",
+        triggerData: mockTriggerData,
+        executionDetails: get().executionLogs,
+        durationMs: 0, // TODO: Calculate duration
+      });
+
       return { success: true, context };
     } catch (error) {
       set({ executionState: "error" });
@@ -422,6 +440,19 @@ export const useWorkflowStore = create((set, get) => ({
         status: "error",
         message: error.message,
       });
+
+      // Log error
+      logService.logExecution({
+        userEmail: get().userEmail,
+        workflowId: workflow.id,
+        workflowName: workflow.name,
+        status: "error",
+        triggerData: mockTriggerData,
+        executionDetails: get().executionLogs,
+        durationMs: 0,
+        errorMessage: error.message,
+      });
+
       return { success: false, error: error.message };
     }
   },

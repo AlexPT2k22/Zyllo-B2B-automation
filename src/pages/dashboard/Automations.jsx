@@ -24,6 +24,7 @@ import {
   Loader2,
   Cloud,
   CloudOff,
+  Clock
 } from "lucide-react";
 
 // Import automation engine
@@ -37,6 +38,7 @@ import { PropertyPanel } from "@/components/automation/PropertyPanel";
 import { AutomationNode } from "@/components/automation/AutomationNode";
 import { ExecutionPanel } from "@/components/automation/ExecutionPanel";
 import { TestModal } from "@/components/automation/TestModal";
+import { LogsPanel } from "@/components/automation/LogsPanel";
 
 // Connection Arrow Component - now accepts dragOffset for real-time updates
 function ConnectionArrow({ from, to, nodes, dragOffset }) {
@@ -116,6 +118,7 @@ function Automations() {
   const [selectedNode, setSelectedNode] = useState(null);
   const [showTestModal, setShowTestModal] = useState(false);
   const [showExecutionPanel, setShowExecutionPanel] = useState(false);
+  const [showLogsPanel, setShowLogsPanel] = useState(false);
   const [activeDrag, setActiveDrag] = useState(null); // Track active drag for live arrow updates
 
   // Connection drag state
@@ -316,6 +319,34 @@ function Automations() {
     setShowNodePicker(false);
   };
 
+  // Handle template selection - adds all nodes and connections from template
+  const handleTemplateSelect = (template) => {
+    if (!template || !template.nodes) return;
+
+    // Add all nodes from template
+    template.nodes.forEach((node) => {
+      storeAddNode(
+        node.nodeType,
+        { x: node.x, y: node.y },
+        node.id,
+        node.config,
+      );
+    });
+
+    // Add all connections from template
+    template.connections.forEach((conn) => {
+      addConnection(conn.from, conn.to);
+    });
+
+    // Update workflow name if template has one
+    if (template.name) {
+      updateWorkflow({ name: template.name });
+    }
+
+    setShowNodePicker(false);
+    toast.success(`Template "${template.name}" added!`);
+  };
+
   // Update node config
   const handleUpdateNodeConfig = (nodeId, config) => {
     updateNodeConfig(nodeId, config);
@@ -488,6 +519,17 @@ function Automations() {
 
           <div className="h-6 w-px bg-white/10" />
 
+          {/* Toggle Logs Panel */}
+          <Button
+            size="icon"
+            variant="ghost"
+            className={`h-8 w-8 ${showLogsPanel ? "text-purple-400" : ""}`}
+            onClick={() => setShowLogsPanel(!showLogsPanel)}
+            title="Execution Logs"
+          >
+            <Clock className="w-4 h-4" />
+          </Button>
+
           {/* Toggle Execution Panel */}
           {executionLogs.length > 0 && (
             <Button
@@ -549,11 +591,15 @@ function Automations() {
 
       {/* Main Content */}
       <div className="flex-1 flex relative overflow-hidden">
+        {/* Logs Panel */}
+        {showLogsPanel && <LogsPanel onClose={() => setShowLogsPanel(false)} />}
+
         {/* Node Picker Panel */}
         <NodePicker
           isOpen={showNodePicker}
           onClose={() => setShowNodePicker(false)}
           onSelectNode={handleNodePickerSelect}
+          onSelectTemplate={handleTemplateSelect}
         />
 
         {/* Canvas */}

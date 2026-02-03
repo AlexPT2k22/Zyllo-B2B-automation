@@ -122,9 +122,16 @@ class NodeRegistry {
    * Create a new node instance from a definition
    * @param {string} nodeTypeId - The node definition ID
    * @param {Object} position - { x, y } position on canvas
+   * @param {string} [id] - Optional custom ID (for templates)
+   * @param {Object} [customConfig] - Optional custom config (for templates)
    * @returns {import('./types').NodeInstance}
    */
-  createInstance(nodeTypeId, position = { x: 0, y: 0 }) {
+  createInstance(
+    nodeTypeId,
+    position = { x: 0, y: 0 },
+    id = null,
+    customConfig = {},
+  ) {
     const definition = this.get(nodeTypeId);
     if (!definition) {
       throw new Error(`Unknown node type: ${nodeTypeId}`);
@@ -139,11 +146,13 @@ class NodeRegistry {
     }
 
     return {
-      id: `${nodeTypeId}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      id:
+        id ||
+        `${nodeTypeId}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       nodeType: nodeTypeId,
       x: position.x,
       y: position.y,
-      config,
+      config: { ...config, ...customConfig },
     };
   }
 }

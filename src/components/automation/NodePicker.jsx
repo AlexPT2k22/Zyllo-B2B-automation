@@ -2,11 +2,17 @@
  * Node Picker Component
  *
  * A searchable, categorized palette for selecting nodes to add to the canvas.
+ * Includes Templates tab for pre-built workflows.
  * Zyllo Style: Floating Glass Panel
  */
 
 import React, { useState, useMemo } from "react";
 import { nodeRegistry } from "@/lib/automation/nodeRegistry";
+import {
+  templates,
+  getCategories,
+  cloneTemplate,
+} from "@/lib/automation/templates";
 import { Button } from "@/components/ui/button";
 import {
   Search,
@@ -25,6 +31,8 @@ import {
   Variable,
   X,
   GripVertical,
+  Layers,
+  Zap,
 } from "lucide-react";
 
 // Icon mapping
@@ -67,10 +75,7 @@ function NodePickerItem({ node, onSelect, onDragStart }) {
         className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0
           bg-opacity-10 transition-colors duration-200"
       >
-        <Icon
-          className="w-5 h-5"
-          style={{ color: category.color }}
-        />
+        <Icon className="w-5 h-5" style={{ color: category.color }} />
       </div>
 
       <div className="flex-1 min-w-0">
@@ -93,6 +98,39 @@ function NodePickerItem({ node, onSelect, onDragStart }) {
           boxShadow: `inset 0 0 20px ${category.color}05`,
         }}
       />
+    </div>
+  );
+}
+
+function TemplateCard({ template, onSelect }) {
+  return (
+    <div
+      onClick={() => onSelect(template)}
+      className="group relative p-4 rounded-xl cursor-pointer
+        bg-white/5 hover:bg-white/10 border border-white/10 hover:border-purple-500/30
+        transition-all duration-200"
+    >
+      <div className="flex items-start gap-3">
+        <div className="text-2xl">{template.icon}</div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-white group-hover:text-purple-300 truncate">
+            {template.name}
+          </p>
+          <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
+            {template.description}
+          </p>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2 mt-3">
+        <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/20">
+          {template.nodes.length} nodes
+        </span>
+        <span className="text-[10px] text-white/30">Click to use</span>
+      </div>
+
+      {/* Hover Glow */}
+      <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-300 ring-1 ring-purple-500/20" />
     </div>
   );
 }
@@ -150,8 +188,14 @@ function NodeCategory({
   );
 }
 
-export function NodePicker({ onSelectNode, onClose, isOpen }) {
+export function NodePicker({
+  onSelectNode,
+  onSelectTemplate,
+  onClose,
+  isOpen,
+}) {
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeTab, setActiveTab] = useState("nodes"); // "nodes" | "templates"
   const [expandedCategories, setExpandedCategories] = useState({
     triggers: true,
     actions: true,
@@ -163,6 +207,16 @@ export function NodePicker({ onSelectNode, onClose, isOpen }) {
     const nodes = nodeRegistry.getAll();
     if (!searchQuery.trim()) return nodes;
     return nodeRegistry.search(searchQuery);
+  }, [searchQuery]);
+
+  const filteredTemplates = useMemo(() => {
+    if (!searchQuery.trim()) return templates;
+    const query = searchQuery.toLowerCase();
+    return templates.filter(
+      (t) =>
+        t.name.toLowerCase().includes(query) ||
+        t.description.toLowerCase().includes(query),
+    );
   }, [searchQuery]);
 
   const nodesByCategory = useMemo(() => {
@@ -178,6 +232,13 @@ export function NodePicker({ onSelectNode, onClose, isOpen }) {
     return grouped;
   }, [filteredNodes]);
 
+  const handleTemplateSelect = (template) => {
+    const cloned = cloneTemplate(template.id);
+    if (cloned && onSelectTemplate) {
+      onSelectTemplate(cloned);
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -186,12 +247,11 @@ export function NodePicker({ onSelectNode, onClose, isOpen }) {
       <div className="flex-1 flex flex-col bg-[#0d0d14]/80 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden ring-1 ring-white/5">
         {/* Header */}
         <div className="p-4 border-b border-white/5 bg-white/5">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-3">
             <div>
-              <h2 className="text-sm font-semibold text-white">Add Node</h2>
-              <p className="text-xs text-muted-foreground">
-                Drag nodes to canvas
-              </p>
+              <h2 className="text-sm font-semibold text-white">
+                Add to Canvas
+              </h2>
             </div>
             <Button
               variant="ghost"
@@ -203,6 +263,32 @@ export function NodePicker({ onSelectNode, onClose, isOpen }) {
             </Button>
           </div>
 
+          {/* Tabs */}
+          <div className="flex gap-1 p-1 bg-black/20 rounded-lg mb-3">
+            <button
+              onClick={() => setActiveTab("nodes")}
+              className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
+                activeTab === "nodes"
+                  ? "bg-purple-500/20 text-purple-400 border border-purple-500/30"
+                  : "text-white/50 hover:text-white/80"
+              }`}
+            >
+              <Zap className="w-3 h-3" />
+              Nodes
+            </button>
+            <button
+              onClick={() => setActiveTab("templates")}
+              className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
+                activeTab === "templates"
+                  ? "bg-purple-500/20 text-purple-400 border border-purple-500/30"
+                  : "text-white/50 hover:text-white/80"
+              }`}
+            >
+              <Layers className="w-3 h-3" />
+              Templates
+            </button>
+          </div>
+
           {/* Search Input */}
           <div className="relative group">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground group-focus-within:text-purple-400 transition-colors" />
@@ -210,55 +296,84 @@ export function NodePicker({ onSelectNode, onClose, isOpen }) {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search nodes..."
+              placeholder={
+                activeTab === "nodes"
+                  ? "Search nodes..."
+                  : "Search templates..."
+              }
               className="w-full h-9 pl-9 pr-3 bg-black/20 border border-white/10 rounded-xl
                 text-sm text-white placeholder:text-muted-foreground/50
                 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500/30
                 transition-all duration-200"
-              autoFocus
             />
           </div>
         </div>
 
-        {/* Categories */}
+        {/* Content */}
         <div className="flex-1 overflow-y-auto p-3 scrollbar-hide">
-          {Object.entries(nodesByCategory).map(
-            ([category, nodes]) =>
-              nodes.length > 0 && (
-                <NodeCategory
-                  key={category}
-                  category={category}
-                  nodes={nodes}
-                  onSelect={(node) => onSelectNode(node.id)}
-                  onDragStart={(e, node) => {
-                    e.dataTransfer.setData(
-                      "application/json",
-                      JSON.stringify({
-                        type: "new-node",
-                        nodeType: node.id,
-                      }),
-                    );
-                    e.dataTransfer.effectAllowed = "copy";
-                  }}
-                  isExpanded={expandedCategories[category]}
-                  onToggle={() =>
-                    setExpandedCategories((p) => ({
-                      ...p,
-                      [category]: !p[category],
-                    }))
-                  }
-                />
-              ),
-          )}
+          {activeTab === "nodes" ? (
+            <>
+              {Object.entries(nodesByCategory).map(
+                ([category, nodes]) =>
+                  nodes.length > 0 && (
+                    <NodeCategory
+                      key={category}
+                      category={category}
+                      nodes={nodes}
+                      onSelect={(node) => onSelectNode(node.id)}
+                      onDragStart={(e, node) => {
+                        e.dataTransfer.setData(
+                          "application/json",
+                          JSON.stringify({
+                            type: "new-node",
+                            nodeType: node.id,
+                          }),
+                        );
+                        e.dataTransfer.effectAllowed = "copy";
+                      }}
+                      isExpanded={expandedCategories[category]}
+                      onToggle={() =>
+                        setExpandedCategories((p) => ({
+                          ...p,
+                          [category]: !p[category],
+                        }))
+                      }
+                    />
+                  ),
+              )}
 
-          {filteredNodes.length === 0 && (
-            <div className="flex flex-col items-center justify-center h-40 text-muted-foreground text-center p-4">
-              <Search className="w-8 h-8 opacity-20 mb-2" />
-              <p className="text-sm">No nodes found</p>
-              <p className="text-xs opacity-50">
-                Try searching for triggers or actions
-              </p>
-            </div>
+              {filteredNodes.length === 0 && (
+                <div className="flex flex-col items-center justify-center h-40 text-muted-foreground text-center p-4">
+                  <Search className="w-8 h-8 opacity-20 mb-2" />
+                  <p className="text-sm">No nodes found</p>
+                  <p className="text-xs opacity-50">
+                    Try searching for triggers or actions
+                  </p>
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              <div className="space-y-3">
+                {filteredTemplates.map((template) => (
+                  <TemplateCard
+                    key={template.id}
+                    template={template}
+                    onSelect={handleTemplateSelect}
+                  />
+                ))}
+              </div>
+
+              {filteredTemplates.length === 0 && (
+                <div className="flex flex-col items-center justify-center h-40 text-muted-foreground text-center p-4">
+                  <Layers className="w-8 h-8 opacity-20 mb-2" />
+                  <p className="text-sm">No templates found</p>
+                  <p className="text-xs opacity-50">
+                    Try a different search term
+                  </p>
+                </div>
+              )}
+            </>
           )}
         </div>
 

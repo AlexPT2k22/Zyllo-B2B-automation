@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -19,7 +19,12 @@ import {
   ChevronRight,
   Instagram,
   Check,
+  Loader2,
+  AlertCircle,
 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { instagramService } from "@/lib/instagramService";
+import { toast } from "sonner";
 
 const settingsSections = [
   {
@@ -61,6 +66,55 @@ const settingsSections = [
 ];
 
 function Settings() {
+  const { user } = useAuth();
+  const [instagramAccount, setInstagramAccount] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isDisconnecting, setIsDisconnecting] = useState(false);
+
+  useEffect(() => {
+    checkConnection();
+  }, [user]);
+
+  const checkConnection = async () => {
+    setIsLoading(true);
+    const result = await instagramService.checkConnection();
+    if (result.connected) {
+      setInstagramAccount(result.account);
+    } else {
+      setInstagramAccount(null);
+    }
+    setIsLoading(false);
+  };
+
+  const handleConnect = async () => {
+    try {
+      const url = await instagramService.getAuthUrl();
+      window.location.href = url;
+    } catch (e) {
+      toast.error("Failed to start Instagram connection: " + e.message);
+    }
+  };
+
+  const handleDisconnect = async () => {
+    if (
+      !confirm(
+        "Are you sure you want to disconnect your Instagram account? Automations will stop working.",
+      )
+    )
+      return;
+
+    setIsDisconnecting(true);
+    const result = await instagramService.disconnect();
+
+    if (result.success) {
+      setInstagramAccount(null);
+      toast.success("Instagram account disconnected");
+    } else {
+      toast.error("Failed to disconnect: " + result.error);
+    }
+    setIsDisconnecting(false);
+  };
+
   return (
     <div className="settings-page">
       {/* Header */}
@@ -75,14 +129,18 @@ function Settings() {
           <CardContent className="profile-content">
             <div className="profile-info">
               <Avatar className="profile-avatar">
-                <AvatarImage src="" alt="John Doe" />
-                <AvatarFallback className="profile-fallback">JD</AvatarFallback>
+                <AvatarImage src={user?.user_metadata?.avatar_url} />
+                <AvatarFallback className="profile-fallback">
+                  {user?.email?.charAt(0).toUpperCase()}
+                </AvatarFallback>
               </Avatar>
               <div className="profile-details">
-                <h3 className="profile-name">John Doe</h3>
-                <p className="profile-email">john@example.com</p>
+                <h3 className="profile-name">
+                  {user?.user_metadata?.full_name || "User"}
+                </h3>
+                <p className="profile-email">{user?.email}</p>
                 <Badge variant="default" className="plan-badge">
-                  Pro Plan
+                  Beta Access
                 </Badge>
               </div>
             </div>
@@ -93,91 +151,68 @@ function Settings() {
         {/* Connected Account */}
         <Card className="connected-card">
           <CardHeader>
-            <CardTitle className="connected-title">Connected Account</CardTitle>
-            <CardDescription>Your linked Instagram account</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="connected-account">
-              <div className="account-info">
-                <div className="instagram-icon">
-                  <Instagram className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <p className="account-username">@johndoe_official</p>
-                  <p className="account-followers">12.5k followers</p>
-                </div>
-              </div>
-              <div className="account-status">
-                <Check className="w-4 h-4 text-green-500" />
-                <span>Connected</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Settings Menu */}
-        <Card className="settings-menu-card">
-          <CardContent className="menu-content">
-            {settingsSections.map((section) => (
-              <button key={section.id} className="settings-menu-item">
-                <div className="menu-item-left">
-                  <div className="menu-icon-wrapper">
-                    <section.icon className="menu-icon" />
-                  </div>
-                  <div className="menu-item-text">
-                    <span className="menu-item-title">{section.title}</span>
-                    <span className="menu-item-desc">
-                      {section.description}
-                    </span>
-                  </div>
-                </div>
-                <ChevronRight className="menu-chevron" />
-              </button>
-            ))}
-          </CardContent>
-        </Card>
-
-        {/* Danger Zone */}
-        <Card className="danger-card">
-          <CardHeader>
-            <CardTitle className="danger-title">Danger Zone</CardTitle>
+            <CardTitle className="connected-title">
+              Instagram Connection
+            </CardTitle>
             <CardDescription>
-              Irreversible actions for your account
+              {instagramAccount
+                ? "Your trusted account for automation"
+                : "Connect your Instagram Logic to enable automations"}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="danger-actions">
-              <div className="danger-item">
-                <div>
-                  <p className="danger-action-title">Disconnect Instagram</p>
-                  <p className="danger-action-desc">
-                    Remove your Instagram connection
-                  </p>
+            {isLoading ? (
+              <div className="p-4 flex justify-center">
+                <Loader2 className="animate-spin text-purple-500" />
+              </div>
+            ) : instagramAccount ? (
+              <div className="connected-account">
+                <div className="account-info">
+                  <div className="instagram-icon">
+                    <Instagram className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <p className="account-username">
+                      @{instagramAccount.username}
+                    </p>
+                    <p className="account-followers">
+                      {instagramAccount.media_count || 0} posts
+                    </p>
+                  </div>
                 </div>
-                <Button variant="outline" className="danger-btn">
-                  Disconnect
+                <div className="account-status">
+                  <Check className="w-4 h-4 text-green-500" />
+                  <span>Connected</span>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center p-6 bg-secondary/20 rounded-lg border border-dashed border-white/10">
+                <Instagram className="w-8 h-8 text-muted-foreground mb-3 opacity-50" />
+                <p className="text-sm text-muted-foreground mb-4 text-center">
+                  Connect your Instagram Professional account to use
+                  automations.
+                </p>
+                <Button
+                  onClick={handleConnect}
+                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 text-white"
+                >
+                  <Instagram className="w-4 h-4 mr-2" />
+                  Connect Invoice Logic
                 </Button>
               </div>
-              <div className="danger-item">
-                <div>
-                  <p className="danger-action-title">Delete Account</p>
-                  <p className="danger-action-desc">
-                    Permanently delete your account and data
-                  </p>
-                </div>
-                <Button variant="destructive">Delete Account</Button>
-              </div>
-            </div>
+            )}
           </CardContent>
         </Card>
-      </div>
 
-      <style>{`
+        {/* Global CSS for this page (from original file) */}
+        <style>{`
         .settings-page {
           display: flex;
           flex-direction: column;
           gap: 1.5rem;
           max-width: 800px;
+          margin: 0 auto;
+          width: 100%;
         }
 
         .page-header {
@@ -187,13 +222,13 @@ function Settings() {
         .page-title {
           font-size: 1.5rem;
           font-weight: 600;
-          color: #1e293b;
+          color: white;
           margin: 0 0 0.25rem;
         }
 
         .page-subtitle {
           font-size: 0.875rem;
-          color: #64748b;
+          color: #94a3b8;
           margin: 0;
         }
 
@@ -208,6 +243,7 @@ function Settings() {
           align-items: center;
           justify-content: space-between;
           padding: 1.5rem !important;
+          background-color: rgba(255, 255, 255, 0.03);
         }
 
         .profile-info {
@@ -234,13 +270,13 @@ function Settings() {
         .profile-name {
           font-size: 1.125rem;
           font-weight: 600;
-          color: #1e293b;
+          color: white;
           margin: 0;
         }
 
         .profile-email {
           font-size: 0.875rem;
-          color: #64748b;
+          color: #94a3b8;
           margin: 0 0 0.375rem;
         }
 
@@ -257,8 +293,9 @@ function Settings() {
           align-items: center;
           justify-content: space-between;
           padding: 1rem;
-          background-color: #f8fafc;
+          background-color: rgba(255, 255, 255, 0.05);
           border-radius: 0.5rem;
+          border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .account-info {
@@ -280,13 +317,13 @@ function Settings() {
         .account-username {
           font-size: 0.875rem;
           font-weight: 600;
-          color: #1e293b;
+          color: white;
           margin: 0;
         }
 
         .account-followers {
           font-size: 0.75rem;
-          color: #64748b;
+          color: #94a3b8;
           margin: 0;
         }
 
@@ -298,118 +335,82 @@ function Settings() {
           font-weight: 500;
           color: #22c55e;
         }
-
-        .menu-content {
-          padding: 0.5rem !important;
-        }
-
-        .settings-menu-item {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          width: 100%;
-          padding: 1rem;
-          background: none;
-          border: none;
-          border-radius: 0.5rem;
-          cursor: pointer;
-          transition: background-color 0.2s;
-        }
-
-        .settings-menu-item:hover {
-          background-color: #f8fafc;
-        }
-
-        .menu-item-left {
-          display: flex;
-          align-items: center;
-          gap: 0.75rem;
-        }
-
-        .menu-icon-wrapper {
-          width: 40px;
-          height: 40px;
-          background-color: #f1f5f9;
-          border-radius: 10px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        .menu-icon {
-          width: 20px;
-          height: 20px;
-          color: #64748b;
-        }
-
-        .menu-item-text {
-          display: flex;
-          flex-direction: column;
-          align-items: flex-start;
-          gap: 0.125rem;
-        }
-
-        .menu-item-title {
-          font-size: 0.875rem;
-          font-weight: 500;
-          color: #1e293b;
-        }
-
-        .menu-item-desc {
-          font-size: 0.75rem;
-          color: #64748b;
-        }
-
-        .menu-chevron {
-          width: 20px;
-          height: 20px;
-          color: #94a3b8;
-        }
-
-        .danger-title {
-          font-size: 1rem;
-          color: #ef4444;
-        }
-
-        .danger-actions {
-          display: flex;
-          flex-direction: column;
-          gap: 1rem;
-        }
-
-        .danger-item {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 1rem;
-          background-color: #fef2f2;
-          border-radius: 0.5rem;
-          border: 1px solid #fecaca;
-        }
-
-        .danger-action-title {
-          font-size: 0.875rem;
-          font-weight: 500;
-          color: #1e293b;
-          margin: 0;
-        }
-
-        .danger-action-desc {
-          font-size: 0.75rem;
-          color: #64748b;
-          margin: 0;
-        }
-
-        .danger-btn {
-          border-color: #ef4444;
-          color: #ef4444;
-        }
-
-        .danger-btn:hover {
-          background-color: #ef4444;
-          color: white;
-        }
       `}</style>
+
+        {/* Settings Menu */}
+        <Card className="settings-menu-card bg-white/5 border-white/10">
+          <CardContent className="menu-content p-2!">
+            {settingsSections.map((section) => (
+              <button
+                key={section.id}
+                className="settings-menu-item flex w-full items-center justify-between p-3 hover:bg-white/5 rounded-lg transition-colors group"
+              >
+                <div className="menu-item-left flex items-center gap-3">
+                  <div className="menu-icon-wrapper w-10 h-10 bg-white/5 rounded-lg flex items-center justify-center">
+                    <section.icon className="menu-icon w-5 h-5 text-muted-foreground group-hover:text-white" />
+                  </div>
+                  <div className="menu-item-text text-left">
+                    <span className="menu-item-title block text-sm font-medium text-white">
+                      {section.title}
+                    </span>
+                    <span className="menu-item-desc block text-xs text-muted-foreground">
+                      {section.description}
+                    </span>
+                  </div>
+                </div>
+                <ChevronRight className="menu-chevron w-5 h-5 text-muted-foreground/50 group-hover:text-white" />
+              </button>
+            ))}
+          </CardContent>
+        </Card>
+
+        {/* Danger Zone */}
+        <Card className="danger-card border-red-900/30 bg-red-900/10">
+          <CardHeader>
+            <CardTitle className="danger-title text-red-400">
+              Danger Zone
+            </CardTitle>
+            <CardDescription>
+              Irreversible actions for your account
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="danger-actions flex flex-col gap-4">
+              {instagramAccount && (
+                <div className="danger-item flex items-center justify-between p-4 bg-red-900/20 rounded-lg border border-red-900/30">
+                  <div>
+                    <p className="danger-action-title font-medium text-white">
+                      Disconnect Instagram
+                    </p>
+                    <p className="danger-action-desc text-xs text-red-300/70">
+                      Remove your Instagram connection
+                    </p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    className="danger-btn border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
+                    onClick={handleDisconnect}
+                    disabled={isDisconnecting}
+                  >
+                    {isDisconnecting ? "Disconnecting..." : "Disconnect"}
+                  </Button>
+                </div>
+              )}
+              <div className="danger-item flex items-center justify-between p-4 bg-red-900/20 rounded-lg border border-red-900/30">
+                <div>
+                  <p className="danger-action-title font-medium text-white">
+                    Delete Account
+                  </p>
+                  <p className="danger-action-desc text-xs text-red-300/70">
+                    Permanently delete your account and data
+                  </p>
+                </div>
+                <Button variant="destructive">Delete Account</Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
