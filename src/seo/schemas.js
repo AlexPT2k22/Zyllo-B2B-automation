@@ -8,6 +8,7 @@ import {
   LOGO_URL,
   DEFAULT_OG_IMAGE,
   SOCIAL_PROFILES,
+  AGGREGATE_RATING,
   absoluteUrl,
 } from "./config";
 
@@ -64,20 +65,30 @@ export const softwareApplicationSchema = () => ({
     "Instagram comment-to-DM automation",
     "TikTok comment and DM automation",
     "Keyword-triggered auto replies",
-    "Story mention and new follower triggers",
+    "Story mention and Story reply triggers",
     "AI-assisted sales follow-ups",
     "Lead qualification and tagging",
     "Abandoned cart recovery via DM",
   ],
+  // Google requires offers.price for software apps; use the entry plan.
   offers: {
-    "@type": "AggregateOffer",
+    "@type": "Offer",
+    price: "29",
     priceCurrency: "EUR",
-    lowPrice: "29",
-    highPrice: "149",
-    offerCount: 3,
     availability: "https://schema.org/PreOrder",
     url: absoluteUrl("/waitlist"),
   },
+  ...(AGGREGATE_RATING
+    ? {
+        aggregateRating: {
+          "@type": "AggregateRating",
+          ratingValue: AGGREGATE_RATING.ratingValue,
+          ratingCount: AGGREGATE_RATING.ratingCount,
+          bestRating: 5,
+          worstRating: 1,
+        },
+      }
+    : {}),
   publisher: { "@id": ORG_ID },
 });
 

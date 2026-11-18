@@ -26,6 +26,12 @@ export const SOCIAL_PROFILES = [
   // "https://www.linkedin.com/company/zyllo",
 ];
 
+// Real user ratings ONLY (e.g. from beta users, G2 or Capterra). Never invent
+// these: fake ratings violate Google's guidelines and risk a manual penalty.
+// When filled, SoftwareApplication becomes eligible for star rich results.
+// Example: { ratingValue: 4.8, ratingCount: 23 }
+export const AGGREGATE_RATING = null;
+
 // Social proof shown next to every waitlist form.
 // Keep this number honest — update it as the waitlist grows.
 export const WAITLIST_PROOF = {
