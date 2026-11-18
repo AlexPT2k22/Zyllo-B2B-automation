@@ -1,30 +1,22 @@
 import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
+import { createRoot, hydrateRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
-import { Analytics } from "@vercel/analytics/react";
-import { Toaster } from "sonner";
 import "./index.css";
-import App from "./App.jsx";
-import { AuthProvider } from "./contexts/AuthContext";
+import Root from "./Root.jsx";
 
-createRoot(document.getElementById("root")).render(
+const container = document.getElementById("root");
+const app = (
   <StrictMode>
     <BrowserRouter>
-      <AuthProvider>
-        <App />
-      </AuthProvider>
-      <Analytics />
-      <Toaster
-        position="bottom-right"
-        toastOptions={{
-          style: {
-            background: "rgba(10, 10, 15, 0.95)",
-            border: "1px solid rgba(255, 255, 255, 0.1)",
-            color: "#fff",
-          },
-        }}
-        theme="dark"
-      />
+      <Root />
     </BrowserRouter>
-  </StrictMode>,
+  </StrictMode>
 );
+
+// Public pages are prerendered at build time (scripts/prerender.mjs), so
+// we hydrate the existing HTML. The SPA shell (dashboard, /confirm) is empty.
+if (container.hasChildNodes()) {
+  hydrateRoot(container, app);
+} else {
+  createRoot(container).render(app);
+}

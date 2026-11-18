@@ -88,6 +88,17 @@ const DarkVeil = () => {
     mesh2.position.z = -0.5;
     mesh2.setParent(scene);
 
+    // If a shader fails to compile, ogl leaves `uniformLocations` undefined and
+    // every render() throws. Bail out instead of throwing ~60 errors/second
+    // (which burns CPU/battery on mobile). The static background still shows.
+    if (!program.uniformLocations || !program2.uniformLocations) {
+      if (containerRef.current?.contains(gl.canvas)) {
+        containerRef.current.removeChild(gl.canvas);
+      }
+      gl.getExtension('WEBGL_lose_context')?.loseContext();
+      return;
+    }
+
     function resize() {
       renderer.setSize(containerRef.current.offsetWidth, containerRef.current.offsetHeight);
       camera.perspective({ aspect: gl.canvas.width / gl.canvas.height });

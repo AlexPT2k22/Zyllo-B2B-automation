@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /confirm
+Disallow: /app
+
+Sitemap: https://www.zyllo.tech/sitemap.xml

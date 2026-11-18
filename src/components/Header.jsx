@@ -6,20 +6,23 @@ const Header = () => {
     <header className="header">
       <div className="header-container">
         <div className="logo">
-          <Link to="/">
-            <img src="/Zolly Logo.png" alt="Zyllo" className="logo-image" />
+          <Link to="/" aria-label="Zyllo home">
+            <img src="/Zolly Logo.png" alt="Zyllo" className="logo-image" width="32" height="32" />
           </Link>
         </div>
-        <nav className="nav-menu">
-          <a href="/#product" className="nav-link">
-            Product
-          </a>
+        <nav className="nav-menu" aria-label="Main">
+          <Link to="/instagram-dm-automation" className="nav-link">
+            Instagram
+          </Link>
+          <Link to="/tiktok-dm-automation" className="nav-link">
+            TikTok
+          </Link>
           <a href="/#pricing" className="nav-link">
             Pricing
           </a>
-          <a href="/#faq" className="nav-link">
-            FAQ
-          </a>
+          <Link to="/blog" className="nav-link">
+            Blog
+          </Link>
         </nav>
         <div className="cta-container">
           <Link to="/waitlist" className="cta-button">

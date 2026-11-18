@@ -1,34 +1,10 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import "./FAQ.css";
+import { homeFaqs } from "@/content/faqs";
 
-const faqs = [
-  {
-    question: "Will I get banned from Instagram?",
-    answer:
-      "No. Zyllo uses the Official Meta API, which is the same technology used by major brands and verified business tools. Your account is 100% safe and compliant with Instagram's terms of service.",
-  },
-  {
-    question: "Do I need to know how to code?",
-    answer:
-      "Not at all! Zyllo is designed for business owners, not developers. Our visual rule builder lets you set up automated responses in minutes with zero technical knowledge.",
-  },
-  {
-    question: "Can I cancel anytime?",
-    answer:
-      "Absolutely. There are no long-term contracts or hidden fees. You can cancel your subscription at any time from your dashboard, and you won't be charged again.",
-  },
-  {
-    question: "How quickly can I get started?",
-    answer:
-      "Most users are fully set up in under 10 minutes. Just connect your Instagram or TikTok account, define your keywords, and you're ready to automate.",
-  },
-  {
-    question: "Does Zyllo work with TikTok too?",
-    answer:
-      "Yes! Zyllo supports both Instagram and TikTok business accounts. You can manage comments and DMs from both platforms in one unified dashboard.",
-  },
-];
+// Shared with the FAQPage JSON-LD on the homepage.
+const faqs = homeFaqs;
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -87,7 +63,7 @@ const FAQ = () => {
               variants={itemVariants}
             >
               <div className="faq-question">
-                {faq.question}
+                <h3 className="faq-question-text">{faq.question}</h3>
                 <span className="faq-icon">+</span>
               </div>
               <div className="faq-answer">

@@ -61,3 +61,21 @@
   color: #999;
   line-height: 1.6;
 }
+
+.faq-question-text {
+  font: inherit;
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .faq {
+    padding: 4rem 16px;
+  }
+  .faq-title {
+    font-size: 2rem;
+    margin-bottom: 2rem;
+  }
+  .faq-question {
+    font-size: 1.0625rem;
+  }
+}

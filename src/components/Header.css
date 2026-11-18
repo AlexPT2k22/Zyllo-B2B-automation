@@ -57,3 +57,24 @@
 .cta-button:hover {
   transform: translateY(-1px);
 }
+.nav-link {
+  color: #fff;
+}
+
+/* Mobile: logo + CTA only, so the CTA is always one tap away */
+@media (max-width: 768px) {
+  .header-container {
+    padding: 0.75rem 16px;
+  }
+
+  .nav-menu {
+    display: none;
+  }
+
+  .cta-button {
+    padding: 0.625rem 1rem;
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+  }
+}

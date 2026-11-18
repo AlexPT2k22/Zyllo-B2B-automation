@@ -1,5 +1,25 @@
 {
+  "cleanUrls": true,
+  "trailingSlash": false,
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/dashboard", "destination": "/app.html" },
+    { "source": "/dashboard/:path*", "destination": "/app.html" },
+    { "source": "/confirm", "destination": "/app.html" }
+  ],
+  "headers": [
+    {
+      "source": "/dashboard/:path*",
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
+    },
+    {
+      "source": "/app",
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
+    },
+    {
+      "source": "/assets/:path*",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    }
   ]
 }

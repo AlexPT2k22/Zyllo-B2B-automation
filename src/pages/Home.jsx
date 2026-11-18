@@ -6,7 +6,9 @@ import ComparisonTable from "../components/ComparisonTable";
 import ROICalculator from "../components/ROICalculator";
 import HowItWorks from "../components/HowItWorks";
 import Pricing from "../components/Pricing";
+import UseCases from "../components/UseCases";
 import FAQ from "../components/FAQ";
+import { StickyCta } from "../components/marketing";
 
 const Home = () => {
   return (
@@ -18,7 +20,9 @@ const Home = () => {
       <ROICalculator />
       <HowItWorks />
       <Pricing />
+      <UseCases />
       <FAQ />
+      <StickyCta href="#waitlist-form" threshold={700} />
     </>
   );
 };
